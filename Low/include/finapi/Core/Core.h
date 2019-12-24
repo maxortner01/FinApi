@@ -1,17 +1,12 @@
 #pragma once
 
-#include <cassert>
-#include <fstream>
+#include <string>
 #include <vector>
 
-#define CLEAN_OBJ(obj) if (obj) delete obj
+/*     Type Definitions     */
+#define uint unsigned int
+#define c_uint const unsigned int
 
-namespace finapi
-{
-    template<typename T>
-    static void clean_list(std::vector<T*>& list)
-    {
-        for (int i = 0; i < list.size(); i++)
-            CLEAN_OBJ(list[i]);
-    }
-}
+#define CLEAN_OBJ(obj) if (obj) delete obj
+#define _ALLOC(size, type) (type)std::calloc(size, 1)
+#define CHAR_ALLOC(size) _ALLOC(size, char*) 

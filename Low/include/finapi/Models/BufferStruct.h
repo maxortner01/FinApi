@@ -52,6 +52,12 @@
 
 namespace finapi
 {
+    template<typename T>
+    static void clean_list(std::vector<T*>& list)
+    {
+        for (int i = 0; i < list.size(); i++)
+            CLEAN_OBJ(list[i]);
+    }
     
 /**
  * @brief Common utility methods for extracting binary data from a given file stream.
@@ -95,14 +101,7 @@ namespace filemethods
      * @param file File stream instance directed to the binary file.
      * @param string Pointer to the string.
      */
-    static void read(std::ifstream& file, STRING_FIELD& string)
-    {
-        const unsigned int size = read<unsigned int>(file);
-        string = STRING_ALLOC(size);
-        GET_CHAR(string, size) = '\0';
-
-        file.read(string, size);
-    }
+    void read(std::ifstream& file, STRING_FIELD& string);
 
     /**
      * @brief Simple function that reads in the magic number.
@@ -110,9 +109,6 @@ namespace filemethods
      * @param file File stream instance directed to the binary file.
      * @return unsigned int The magic number of a file.
      */
-    static unsigned int read_magic_number(std::ifstream& file)
-    {
-        return filemethods::read<unsigned int>(file);
-    }
+    unsigned int read_magic_number(std::ifstream& file);
 }
 }

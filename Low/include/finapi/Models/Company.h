@@ -36,26 +36,5 @@ namespace finapi
      * @param data Pointer to an unallocated Company pointer.
      * @param file Binary file stream.
      */
-    static void deserialize(Company** data, std::ifstream& file)
-    {
-        assert(file);
-
-        // Retreive the magic number
-        assert( filemethods::read_magic_number(file) == COMPANY_MN );
-
-        // Create a pointer reference and allocate the memory for a company
-        // object as well as a string pointer
-        Company*& company    = *(data);
-        company              = new Company;
-        STRING_LIST str_iter = (char**)company;
-
-        // Get the count of fields (like with Statement, this should always
-        // be 5)
-        unsigned int count = filemethods::read<unsigned int>(file);
-
-        // Go through each field and allocate and pull the string from the file
-        // and into the object
-        for (int i = 0; i < count; i++)
-            filemethods::read(file, GET_STRING(str_iter, i));
-    }
+    void deserialize(Company** data, std::ifstream& file);
 }

@@ -45,30 +45,5 @@ namespace finapi
      * @param data Pointer to an unallocated Statement pointer.
      * @param file Binary file stream to read from.
      */
-    static void deserialize(Statement** data, std::ifstream& file)
-    {
-        assert(file);
-
-        // Read the magic number
-        assert( filemethods::read_magic_number(file) == STATEMENT_MN );
-
-        // Create a reference pointer to the Statement in which we are manipulating
-        // as well as a string list pointer to the fields of the statement.
-        Statement*& statement = *(data);
-        statement = new Statement;
-        STRING_LIST str_iter = (char**)statement;
-
-        // Get the count of fields (though this should always be the same so long
-        // as the Statement type is being populated)
-        unsigned int count = filemethods::read<unsigned int>(file);
-
-        for (int i = 0; i < count - 1; i++)
-        {
-            // The third object is an integer in the file
-            if (i == 3) filemethods::read(file, &statement->fiscal_year);
-
-            // Everything else is a string field. So pull the next string from the file
-            filemethods::read(file, GET_STRING(str_iter, i));
-        }
-    }
+    static void deserialize(Statement** data, std::ifstream& file);
 }

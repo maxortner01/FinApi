@@ -1,9 +1,21 @@
+/**
+ * @file Network.h
+ * 
+ * @brief Cross-platform foundation for performing basic socket operations.
+ * 
+ * @author  Max Ortner
+ * @date    2019-12-24
+ * @version 0.1
+ * 
+ * @copyright Copyright (c) 2019
+ * 
+ */
 #pragma once
 
 /*
  * Windows includes and function definitions
  */
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) || !defined(__CYGWIN__)
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) || defined(__WIN32__)
 
 /*           INCLUDES          */
 #   include <WinSock2.h> // socket methods
@@ -22,29 +34,7 @@
  * @param dst  The location where the address should go
  * @return int Success value
  */
-static int inet_pton(int af, const char *src, void *dst)
-{
-    struct sockaddr_storage ss;
-    int size = sizeof(ss);
-    char src_copy[INET6_ADDRSTRLEN+1];
-
-    ZeroMemory(&ss, sizeof(ss));
-    /* stupid non-const API */
-    strncpy (src_copy, src, INET6_ADDRSTRLEN+1);
-    src_copy[INET6_ADDRSTRLEN] = 0;
-
-    if (WSAStringToAddress(src_copy, af, NULL, (struct sockaddr *)&ss, &size) == 0) {
-        switch(af) {
-        case AF_INET:
-        *(struct in_addr *)dst = ((struct sockaddr_in *)&ss)->sin_addr;
-        return 1;
-        case AF_INET6:
-        *(struct in6_addr *)dst = ((struct sockaddr_in6 *)&ss)->sin6_addr;
-        return 1;
-        }
-    }
-    return 0;
-}
+static int inet_pton(int af, const char *src, void *dst);
 
 namespace finapi
 {
@@ -92,9 +82,7 @@ namespace network
 // Buffer size to expect from the server
 #define _FIN_BUFFER_SIZE 1024*2
 
-#include <cstdlib>  // malloc, free
-#include <string>   // string class
-#include <cstring>  // memset
+#include "../Core/Core.h"
 
 namespace finapi
 {
@@ -108,7 +96,7 @@ namespace network
         int          _socket;
         sockaddr_in* _addr;
 
-        ~object() { std::free(_addr); }
+        ~object();
     };
 
     /**
@@ -118,11 +106,7 @@ namespace network
      * 
      * @return int Handle of the socket.
      */
-    static int make_socket()
-    {
-        WSAStart();
-        return socket(AF_INET, SOCK_STREAM, 0);
-    }
+    int make_socket();
 
     /**
      * @brief Sets the basic options of a given socket.
@@ -130,14 +114,7 @@ namespace network
      * @param sock Integer handle for the socket.
      * @return int Execution state: 0 for failed, 1 for success
      */
-    static int set_options(const int sock)
-    {
-        int opt;
-
-        if ( setsockopt(sock, SOL_SOCKET, SOCK_OPT, (char*)&opt, sizeof(int)) )
-            return 0;
-        return 1;
-    }
+    int set_options(const int sock);
 
     /**
      * @brief Binds a port to a given socket.
@@ -146,23 +123,7 @@ namespace network
      * @param port          Port to bind the socket to
      * @return sockaddr_in* Allocated address object containing the information about the socket.
      */
-    static sockaddr_in* bind_socket(const int sock, const int port)
-    {
-        sockaddr_in* address = new sockaddr_in;
-        int sock_len = sizeof(address);
-
-        address->sin_family = AF_INET;
-        address->sin_addr.s_addr = INADDR_ANY;
-        address->sin_port = htons(port);
-
-        if ( bind(sock, (sockaddr*)address, sizeof(sockaddr_in)) < 0 )
-        {
-            std::free(address);
-            return 0;
-        }
-
-        return address;
-    } 
+    sockaddr_in* bind_socket(const int sock, const int port);
 
     /**
      * @brief Sets a given socket to listen for incoming connections
@@ -171,12 +132,7 @@ namespace network
      * @param queue Connection backlog count
      * @return int  Success value
      */
-    static int make_listen(const int sock, const int queue)
-    {
-        if (listen(sock, queue) < 0)
-            return 0;
-        return 1;
-    }
+    int make_listen(const int sock, const int queue);
 
     /**
      * @brief Waits for an outside connection and pulls in the incoming socket information.
@@ -186,10 +142,7 @@ namespace network
      * @param addr_len  Size of the socket address
      * @return int      Success value
      */
-    static int accept_socket(const int sock, sockaddr_in* in, int* addr_len)
-    {
-        return accept(sock, (sockaddr*)in, (socklen_t*)addr_len);
-    }
+    int accept_socket(const int sock, sockaddr_in* in, int* addr_len);
 
     /**
      * @brief Client side function for connecting to a given IP.
@@ -199,20 +152,7 @@ namespace network
      * @param port  Port to connect to
      * @return int  Success value
      */
-    static int connect_to_ip(const int sock, const char* ip, const int port)
-    {
-        sockaddr_in serv_addr;
-        serv_addr.sin_family = AF_INET;
-        serv_addr.sin_port   = htons(port);
-
-        if (inet_pton(AF_INET, ip, &serv_addr.sin_addr) <= 0)
-            return 0;
-
-        if (connect(sock, (sockaddr*)&serv_addr, sizeof(sockaddr)) < 0)
-            return 0;
-
-        return 1;
-    }
+    int connect_to_ip(const int sock, const char* ip, const int port);
 
     /**
      * @brief Method for easily connecting to a given IP address.
@@ -220,16 +160,7 @@ namespace network
      * @param address   String of the IP to connect to
      * @return int      Created socket for connection
      */
-    static int connect_socket(const char* address)
-    {
-        int sock = make_socket();
-        if (sock < 0) return -1;
-
-        if (!connect_to_ip(sock, address, 1420))
-            return -2;
-
-        return sock;
-    }
+    int connect_socket(const char* address);
 
     /* const char* concatenizer */
     template<typename T>
