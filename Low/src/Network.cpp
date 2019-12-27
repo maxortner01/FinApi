@@ -110,12 +110,18 @@ namespace network
 namespace Cloud
 {
     File::File(Status s) :
-        filesize(0), status(s), buffer(nullptr)
+        iterator(0), filesize(0), status(s), buffer(nullptr)
     {   }
 
     File::File(c_uint size) :
-        status(OK), filesize(size), buffer( CHAR_ALLOC(size) )
+        iterator(0), status(OK), filesize(size), buffer( CHAR_ALLOC(size) )
     {   }
+
+    void File::read(void* ptr, c_uint size)
+    {
+        std::memcpy(ptr, buffer + iterator, size);
+        iterator += size;
+    }
 
     File::~File()
     { std::free(buffer); }

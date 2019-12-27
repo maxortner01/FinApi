@@ -45,5 +45,6 @@ namespace finapi
      * @param data Pointer to an unallocated Statement pointer.
      * @param file Binary file stream to read from.
      */
-    static void deserialize(Statement** data, std::ifstream& file);
+    template<typename T>
+    static void deserialize(Statement** data, T& file);
 }

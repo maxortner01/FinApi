@@ -44,5 +44,6 @@ namespace finapi
      * @param data 
      * @param file 
      */
-    void deserialize(std::vector<DataTag*>& data, std::ifstream& file);
+    template<typename T>
+    void deserialize(std::vector<DataTag*>& data, T& file);
 }

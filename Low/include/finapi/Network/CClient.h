@@ -45,7 +45,7 @@ namespace _ADDR
 {
     static const char* addresses[] = {
         "127.0.0.1",
-        "192.168.1.128"
+        "192.168.1.142"
     };
 }
 
@@ -74,7 +74,12 @@ namespace _ADDR
 
         File(c_uint size);
 
+        void read(void* ptr, c_uint size);
+
         ~File();
+    
+    private:
+        unsigned int iterator;
     };
 
     /**
