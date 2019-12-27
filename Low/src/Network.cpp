@@ -148,6 +148,17 @@ namespace Cloud
         return r;
     }
 
+    std::string make_request(const char* command, const char* address)
+    {
+        int socket = network::connect_socket(address);
+        return make_request(command, socket);
+    }
+
+    bool file_exists(const char* filename, const char* address)
+    {
+        return (make_request(network::str_concat("exists ", filename).c_str(), address) == "T");
+    }
+
     void request_file(const char* filename, const int i, const int filesize, char* buffer, const char* address)
     {
         int sock = network::connect_socket(address);
