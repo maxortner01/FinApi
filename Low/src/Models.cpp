@@ -1,5 +1,9 @@
 #include "finapi/finapi.h"
 
+#define TEMP_TYPES(type)\
+    template void deserialize<std::ifstream>(type, std::ifstream&);\
+    template void deserialize<Cloud::File*>(type, Cloud::File*&);
+
 namespace finapi
 {
     /*        BufferStruct.h         */ 
@@ -14,15 +18,28 @@ namespace filemethods
         file.read(string, size);
     }
 
-    unsigned int read_magic_number(std::ifstream& file)
+    void read(Cloud::File* file, STRING_FIELD& string)
+    {
+        const unsigned int size = read<unsigned int>(file);
+        string = STRING_ALLOC(size);
+        GET_CHAR(string, size) = '\0';
+
+        file->read(string, size);
+    }
+
+    template<typename T>
+    unsigned int read_magic_number(T& file)
     {
         return filemethods::read<unsigned int>(file);
     }
+
+    template unsigned int read_magic_number<std::ifstream>(std::ifstream&);
+    template unsigned int read_magic_number<Cloud::File*>(Cloud::File*&);
 }
 
-
     //   DataTag
-    void deserialize(std::vector<DataTag*>& data, std::ifstream& file)
+    template<typename T>
+    void deserialize(std::vector<DataTag*>& data, T& file)
     {
         assert(file);
 
@@ -66,7 +83,8 @@ namespace filemethods
     }
 
     //   Company
-    void deserialize(Company** data, std::ifstream& file)
+    template<typename T>
+    void deserialize(Company** data, T& file)
     {
         assert(file);
 
@@ -90,7 +108,8 @@ namespace filemethods
     }
 
     //  Statement
-    void deserialize(Statement** data, std::ifstream& file)
+    template<typename T>
+    void deserialize(Statement** data, T& file)
     {
         assert(file);
 
@@ -154,4 +173,9 @@ namespace filemethods
         }
         data.shrink_to_fit();
     }
+
+    // Define template types
+    TEMP_TYPES(Company**);
+    TEMP_TYPES(Statement**);
+    TEMP_TYPES(std::vector<DataTag*>&);
 }

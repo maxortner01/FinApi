@@ -26,6 +26,11 @@ int inet_pton(int af, const char *src, void *dst)
     return 0;
 }
 
+#else
+
+#   include <net/if.h>      // mac address things
+#   include <sys/ioctl.h>   // ioctl
+
 #endif
 
 namespace finapi
@@ -34,6 +39,63 @@ namespace network
 {
     object::~object()
         { std::free(_addr); }
+
+    mac get_mac_address()
+    {
+    #ifdef _FIN_WINDOWS
+    
+    #else
+        mac r;
+        std::memset(r.address, 0, 6 * sizeof(unsigned char));
+
+        int sock = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
+        if (sock < 0) return r;
+
+        char*  buffer = (char*)std::calloc(1, _FIN_BUFFER_SIZE);
+        ifreq  ifr;
+        ifconf ifc;
+
+        ifc.ifc_len = _FIN_BUFFER_SIZE;
+        ifc.ifc_buf = buffer;
+
+        if (ioctl(sock, SIOCGIFCONF, &ifc) == -1)
+            { close(sock); return r; }
+        
+        ifreq* it = ifc.ifc_req;
+        const ifreq* end = it + (ifc.ifc_len / sizeof(ifreq));
+
+        bool success = false;
+        do
+        {
+            strcpy(ifr.ifr_name, it->ifr_name);
+            if ( ioctl(sock, SIOCGIFFLAGS, &ifr) == 0 )
+            {
+                if (!(ifr.ifr_flags & IFF_LOOPBACK))
+                {
+                    if ( ioctl(sock, SIOCGIFHWADDR, &ifr) == 0 )
+                    {
+                        success = true;
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                break;
+            }
+
+            it++;
+        } while (it != end);
+        
+        if (success)
+            std::memcpy(r.address, ifr.ifr_hwaddr.sa_data, 6);
+
+        close(sock);
+
+        return r;
+
+    #endif
+    }
 
     int make_socket()
     {
@@ -110,12 +172,18 @@ namespace network
 namespace Cloud
 {
     File::File(Status s) :
-        filesize(0), status(s), buffer(nullptr)
+        iterator(0), filesize(0), status(s), buffer(nullptr)
     {   }
 
     File::File(c_uint size) :
-        status(OK), filesize(size), buffer( CHAR_ALLOC(size) )
+        iterator(0), status(OK), filesize(size), buffer( CHAR_ALLOC(size) )
     {   }
+
+    void File::read(void* ptr, c_uint size)
+    {
+        std::memcpy(ptr, buffer + iterator, size);
+        iterator += size;
+    }
 
     File::~File()
     { std::free(buffer); }
@@ -146,6 +214,17 @@ namespace Cloud
         std::string r = buffer;
         std::free(buffer);
         return r;
+    }
+
+    std::string make_request(const char* command, const char* address)
+    {
+        int socket = network::connect_socket(address);
+        return make_request(command, socket);
+    }
+
+    bool file_exists(const char* filename, const char* address)
+    {
+        return (make_request(network::str_concat("exists ", filename).c_str(), address) == "T");
     }
 
     void request_file(const char* filename, const int i, const int filesize, char* buffer, const char* address)

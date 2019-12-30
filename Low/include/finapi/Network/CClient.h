@@ -45,7 +45,7 @@ namespace _ADDR
 {
     static const char* addresses[] = {
         "127.0.0.1",
-        "192.168.1.128"
+        "192.168.1.142"
     };
 }
 
@@ -74,7 +74,12 @@ namespace _ADDR
 
         File(c_uint size);
 
+        void read(void* ptr, c_uint size);
+
         ~File();
+    
+    private:
+        unsigned int iterator;
     };
 
     /**
@@ -87,7 +92,32 @@ namespace _ADDR
      */
     void make_request(const char* command, const int socket, char* buffer, int size = -1);
 
+    /**
+     * @brief Make a request with a given socket.
+     * 
+     * @param command       Command to send to the server
+     * @param socket        Socket connection to the server
+     * @return std::string  Response given by the server
+     */
     std::string make_request(const char* command, const int socket);
+
+    /**
+     * @brief Make a request with a given address.
+     * 
+     * @param command       Command to send to the server
+     * @param address       Address of the server
+     * @return std::string  Response given by the server
+     */
+    std::string make_request(const char* command, const char* address);
+
+    /**
+     * @brief Check whether or not a file exists
+     * 
+     * @param filename  Name of the file to check
+     * @param address   Address of the server
+     * @return bool     Whether or not the file exists
+     */
+    bool file_exists(const char* filename, const char* address);
 
     /**
      * @brief Create a socket solely for the purpose of pulling a file from the server

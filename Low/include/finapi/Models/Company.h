@@ -36,5 +36,6 @@ namespace finapi
      * @param data Pointer to an unallocated Company pointer.
      * @param file Binary file stream.
      */
-    void deserialize(Company** data, std::ifstream& file);
+    template<typename T>
+    void deserialize(Company** data, T& file);
 }

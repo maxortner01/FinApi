@@ -65,6 +65,7 @@ namespace network
 #   include <sys/socket.h> // socket methods
 #   include <netinet/in.h>
 #   include <arpa/inet.h>  // inet function
+#   include <unistd.h>     // close
 
 #   define SOCK_OPT SO_REUSEADDR | SO_REUSEPORT
 
@@ -98,6 +99,18 @@ namespace network
 
         ~object();
     };
+
+    struct mac
+    {
+        unsigned char address[6];
+    };
+
+    /**
+     * @brief Get the MAC Address of the network interface.
+     * 
+     * @return mac MAC Address object
+     */
+    mac get_mac_address();
 
     /**
      * @brief Creates a socket and returns the handle.
