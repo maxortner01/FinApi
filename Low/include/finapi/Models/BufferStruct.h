@@ -125,6 +125,24 @@ namespace filemethods
     }
 
     /**
+     * @brief 
+     * 
+     * @param file 
+     * @return true 
+     * @return false 
+     */
+    bool eof(std::ifstream& file);
+
+    /**
+     * @brief 
+     * 
+     * @param file 
+     * @return true 
+     * @return false 
+     */
+    bool eof(Cloud::File* file);
+
+    /**
      * @brief Reads in a string from a given file stream.
      * 
      * The string passed should be an unallocated pointer, since this function allocates

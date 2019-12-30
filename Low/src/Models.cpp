@@ -9,6 +9,16 @@ namespace finapi
     /*        BufferStruct.h         */ 
 namespace filemethods
 {
+    bool eof(std::ifstream& file)
+    {
+        return file.eof();
+    }
+
+    bool eof(Cloud::File* file)
+    {
+        return file->eof();
+    }
+
     void read(std::ifstream& file, STRING_FIELD& string)
     {
         const unsigned int size = read<unsigned int>(file);
@@ -139,18 +149,18 @@ namespace filemethods
     /*---------- Josh Ortner ----------*/
 
     //   EodAdj
-    #undef NDEBUG
-    void deserialize(std::vector<EodAdj*>& data, std::ifstream& file)
+    template<typename T>
+    void deserialize(std::vector<EodAdj*>& data, T& file)
     {
         assert(file);
 
 		// Read the magic number
-		assert(  filemethods::read_magic_number(file) == EOD_ADJ_MN );
+		assert(filemethods::read_magic_number(file) == EOD_ADJ_MN);
 
         // Clean the list and reserve memory for the alloted amount of objects
         clean_list(data);
 
-        while(!file.eof())
+        while(!filemethods::eof(file))
         {
             // Create a new DataTag object and store in list as well as collecting a few
             // handles to the data
@@ -178,4 +188,5 @@ namespace filemethods
     TEMP_TYPES(Company**);
     TEMP_TYPES(Statement**);
     TEMP_TYPES(std::vector<DataTag*>&);
+    TEMP_TYPES(std::vector<EodAdj*>&);
 }

@@ -185,6 +185,11 @@ namespace Cloud
         iterator += size;
     }
 
+    bool File::eof() const
+    {
+        return (iterator >= filesize);
+    }
+
     File::~File()
     { std::free(buffer); }
 

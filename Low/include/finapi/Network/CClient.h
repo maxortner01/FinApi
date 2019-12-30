@@ -76,6 +76,8 @@ namespace _ADDR
 
         void read(void* ptr, c_uint size);
 
+        bool eof() const;
+
         ~File();
     
     private:
