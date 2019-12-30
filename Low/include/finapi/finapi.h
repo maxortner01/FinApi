@@ -19,7 +19,7 @@
 #pragma once
 
 /*      Sys. Includes       */
-#include <cassert>  // assert
+//#include <cassert>  // assert
 #include <fstream>  // ifstream, ofstream
 #include <vector>   // vector class
 #include <thread>   // thread class
@@ -35,3 +35,4 @@
 #include "Models/Company.h"
 #include "Models/DataTag.h" 
 #include "Models/Statement.h" 
+#include "Models/EodAdj.h"

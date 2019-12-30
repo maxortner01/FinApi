@@ -7,7 +7,7 @@ include_directories(include)
 
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
-add_library(finapi SHARED ${SOURCES})
+add_library(finapi STATIC ${SOURCES})
 
 find_library(PTHREAD_LIB pthread)
 target_link_libraries(finapi "${PTHREAD_LIB}")
