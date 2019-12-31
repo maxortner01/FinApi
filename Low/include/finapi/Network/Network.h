@@ -100,6 +100,18 @@ namespace network
         ~object();
     };
 
+    struct mac
+    {
+        unsigned char address[6];
+    };
+
+    /**
+     * @brief Get the MAC Address of the network interface.
+     * 
+     * @return mac MAC Address object
+     */
+    mac get_mac_address();
+
     /**
      * @brief Creates a socket and returns the handle.
      * 
