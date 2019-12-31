@@ -65,6 +65,7 @@ namespace network
 #   include <sys/socket.h> // socket methods
 #   include <netinet/in.h>
 #   include <arpa/inet.h>  // inet function
+#   include <unistd.h>     // close
 
 #   define SOCK_OPT SO_REUSEADDR | SO_REUSEPORT
 

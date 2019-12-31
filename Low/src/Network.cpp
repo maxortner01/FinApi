@@ -1,5 +1,6 @@
 #include "finapi/finapi.h"
 
+#define _FIN_DEBUG
 #ifdef _FIN_WINDOWS
 
 int inet_pton(int af, const char *src, void *dst)
@@ -59,10 +60,14 @@ namespace network
         address->sin_addr.s_addr = INADDR_ANY;
         address->sin_port = htons(port);
 
-        if ( bind(sock, (sockaddr*)address, sizeof(sockaddr_in)) < 0 )
+    #ifdef _FIN_DEBUG
+        std::cout << "Binding socket " << sock << " to port " << port << "\n";
+    #endif
+
+        if ( bind(sock, (struct sockaddr*)address, sizeof(sockaddr_in)) != 0 )
         {
             std::free(address);
-            return 0;
+            return nullptr;
         }
 
         return address;
@@ -88,9 +93,26 @@ namespace network
 
         if (inet_pton(AF_INET, ip, &serv_addr.sin_addr) <= 0)
             return 0;
+        
+        sockaddr_in* addr;
+        for (int lower = 9000; lower <= 10000 && !addr; lower++)
+            addr = bind_socket(sock, lower);
+
+        if (!addr) 
+        {
+        #ifdef _FIN_DEBUG
+            std::cout << "Failed to bind a port!\n";
+        #endif
+            return 0;
+        }
 
         if (connect(sock, (sockaddr*)&serv_addr, sizeof(sockaddr)) < 0)
+        {
+        #ifdef _FIN_DEBUG
+            std::cout << "Connection failed with error code " << errno << ": " << strerror(errno) << "\n";
+        #endif
             return 0;
+        }
 
         return 1;
     }
@@ -101,8 +123,11 @@ namespace network
         if (sock < 0) return -1;
 
         if (!connect_to_ip(sock, address, 1420))
+        {
+            close(sock);
             return -2;
-
+        }
+        
         return sock;
     }
 }
@@ -157,7 +182,9 @@ namespace Cloud
     std::string make_request(const char* command, const char* address)
     {
         int socket = network::connect_socket(address);
-        return make_request(command, socket);
+        std::string r = make_request(command, socket);
+        close(socket);
+        return r;
     }
 
     bool file_exists(const char* filename, const char* address)
@@ -169,10 +196,13 @@ namespace Cloud
     {
         int sock = network::connect_socket(address);
 
+        if (make_request("LOGIN ADMIN ADMIN123", address) != "OK")
+            { close(sock); return; }
+
         std::string command = network::str_concat("REQ ", filename, " ", std::to_string(i));
         make_request(command.c_str(), sock, buffer + (_FIN_BUFFER_SIZE * i), filesize);
         
-        // Close socket
+        close(sock);
     }
 
     void get_file(const char* filename, const char* address, File*& file)
@@ -180,19 +210,19 @@ namespace Cloud
         time_point(start);
 
         int sock = network::connect_socket(address);
-        
+
         if (sock < 0)
             { file = new File(SOCKET_FAIL); return; }
 
         if (make_request(network::str_concat("exists ", filename).c_str(), sock) == "F")
-            { file = new File(DNE); return; }
+            { close(sock); file = new File(DNE); return; }
 
         unsigned int filesize, chunks;
         make_request(network::str_concat("SZE ", filename).c_str(), sock, (char*)&filesize, sizeof(unsigned int));
         make_request(network::str_concat("CHK ", filename).c_str(), sock, (char*)&chunks,   sizeof(unsigned int));
         filesize -= 1;
 
-        // Close socket
+        close(sock);
 
         file = new File(filesize);
 
