@@ -45,14 +45,16 @@ namespace _ADDR
 {
     static const char* addresses[] = {
         "127.0.0.1",
-        "192.168.1.142"
+        "192.168.1.142",
+        "99.83.27.95"
     };
 }
 
     enum Address
     {
         LocalHost,
-        LocalServer
+        LocalServer,
+        Server
     };
 
     enum Status
@@ -61,7 +63,8 @@ namespace _ADDR
         DNE,
         EMPTY,
         SOCKET_FAIL,
-        CONNECT_FAIL
+        CONNECT_FAIL,
+        LOGIN_FAIL
     };
 
     struct File
