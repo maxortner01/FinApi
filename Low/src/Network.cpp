@@ -205,10 +205,15 @@ namespace Cloud
         iterator(0), status(OK), filesize(size), buffer( CHAR_ALLOC(size) )
     { set_ok(true); }
 
-    void File::read(void* ptr, c_uint size)
+    ReadStatus File::read(void* ptr, c_uint size)
     {
+        if (iterator > size)
+            return ReadStatus(false);
+
         std::memcpy(ptr, buffer + iterator, size);
         iterator += size;
+
+        return ReadStatus();
     }
 
     File::~File()
@@ -224,7 +229,7 @@ namespace Cloud
             set_ok(true);
     }
 
-    void ServerStream::read(char* dest, c_uint size) const
+    ReadStatus ServerStream::read(char* dest, c_uint size) const
     {
         assert(ok());
 
@@ -235,6 +240,8 @@ namespace Cloud
             "STRM ", fname, " ", std::to_string(size).c_str()).c_str(), 
             _socket).c_str()
         );
+
+        return ReadStatus();
     }
 
     void make_request(const char* command, const int socket, char* buffer, int size)

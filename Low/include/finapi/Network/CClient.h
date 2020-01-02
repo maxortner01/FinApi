@@ -86,6 +86,18 @@ namespace _ADDR
         explicit operator bool() const { return ok(); }
     };
 
+    struct ReadStatus
+    {
+        ReadStatus(bool g = true) :
+            _good(g)
+        {   }
+
+        bool good() { return _good; }
+
+    private:
+        bool _good;
+    };
+
     /**
      * @brief Make a request to the server with a given command.
      * 

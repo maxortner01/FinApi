@@ -16,7 +16,7 @@ namespace Cloud
 
         File(c_uint size);
 
-        void read(void* ptr, c_uint size);
+        ReadStatus read(void* ptr, c_uint size);
 
         ~File();
     

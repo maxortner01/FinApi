@@ -28,7 +28,7 @@ namespace Cloud
         ServerStream(const char* filename, Cloud::Address address);
         ~ServerStream();
 
-        void read(char* dest, c_uint size) const;
+        ReadStatus read(char* dest, c_uint size) const;
     };
 }
 }

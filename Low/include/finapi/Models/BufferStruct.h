@@ -74,9 +74,9 @@ namespace filemethods
      * @param dest      Pointer pointing to the data to be populated
      */
     template<typename T, typename _Stream>
-    void read(_Stream& file, T* dest)
+    bool read(_Stream& file, T* dest)
     {
-        file.read((char*)dest, sizeof(T));
+        return (file.read((char*)dest, sizeof(T)).good());
     }
 
     /**
