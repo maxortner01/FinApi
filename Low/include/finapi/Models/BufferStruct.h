@@ -24,8 +24,6 @@
 #include "../Core/Core.h"
 #include "../Network/ServerStream.h"
 
-#define assert(expr) if (!(expr)) exit(0);
-
 #define CONSTRUCT_BUFF(class_name, f)\
     class_name() : fields(f) {    }\
     private:\

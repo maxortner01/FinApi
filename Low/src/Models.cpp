@@ -143,6 +143,8 @@ namespace filemethods
         // Clean the list and reserve memory for the alloted amount of objects
         clean_list(data);
 
+        // HEY FIX THIS, This method doesnt exist anymore and should be the reason
+        // you're getting an error
         while(!filemethods::eof(file))
         {
             // Create a new DataTag object and store in list as well as collecting a few

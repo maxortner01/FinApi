@@ -18,6 +18,10 @@
 
 #pragma once
 
+#define assert(expr) if (!(expr)) {\
+    printf("Assertion failed in file %s on expression\n\n%s\n\non line %d\n", __FILE__, #expr, __LINE__);\
+    exit(1); }
+
 /*      Sys. Includes       */
 #include <fstream>  // ifstream, ofstream
 #include <vector>   // vector class
@@ -45,6 +49,3 @@
 #include "Backtester/Event.h"
 #include "Backtester/DataHandler.h"
 #include "Backtester/ExSystemStructs.h"
-#define assert(expr) if (!(expr)) {\
-    printf("Assertion failed in file %s on expression\n\n%s\n\non line %d\n", __FILE__, #expr, __LINE__);\
-    exit(1); }
