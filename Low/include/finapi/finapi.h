@@ -19,7 +19,6 @@
 #pragma once
 
 /*      Sys. Includes       */
-#include <cassert>  // assert
 #include <fstream>  // ifstream, ofstream
 #include <vector>   // vector class
 #include <thread>   // thread class
@@ -28,10 +27,16 @@
 #include <cstring>  // memset
 
 /*          Network         */
+#include "Network/File.h"
 #include "Network/Network.h"
 #include "Network/CClient.h"
+#include "Network/ServerStream.h"
 
 /*          Models          */
 #include "Models/Company.h"
 #include "Models/DataTag.h" 
 #include "Models/Statement.h" 
+
+#define assert(expr) if (!(expr)) {\
+    printf("Assertion failed in file %s on expression\n\n%s\n\non line %d\n", __FILE__, #expr, __LINE__);\
+    exit(1); }

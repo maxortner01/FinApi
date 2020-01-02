@@ -37,6 +37,8 @@
 
 #endif
 
+#define ADDR_FROM_ENUM(enum) finapi::Cloud::_ADDR::addresses[enum]
+
 namespace finapi
 {
 namespace Cloud
@@ -49,6 +51,8 @@ namespace _ADDR
         "99.83.27.95"
     };
 }
+
+    class File;
 
     enum Address
     {
@@ -67,22 +71,19 @@ namespace _ADDR
         LOGIN_FAIL
     };
 
-    struct File
+    class StreamCheck
     {
-        Status status;
-        c_uint filesize;
-        char*  buffer;
+        bool _ok;
 
-        File(Status s = EMPTY);
+    protected:
+        void set_ok(bool value) { _ok = value; }
 
-        File(c_uint size);
+    public:
+        StreamCheck() : _ok(false)
+        {   }
 
-        void read(void* ptr, c_uint size);
-
-        ~File();
-    
-    private:
-        unsigned int iterator;
+        const bool ok() const { return _ok; }
+        explicit operator bool() const { return ok(); }
     };
 
     /**
@@ -133,8 +134,8 @@ namespace _ADDR
      */
     void request_file(const char* filename, const int i, const int filesize, char* buffer, const char* address);
     
-    void get_file(const char* filename, const char* address, File*& file);
+    void get_file(const char* filename, const char* address, File& file);
 
-    void get_file(const char* filename, Address address, File*& file);
+    void get_file(const char* filename, Address address, File& file);
 }
 }

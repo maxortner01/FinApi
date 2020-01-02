@@ -39,7 +39,7 @@ namespace finapi
 namespace network
 {
     object::~object()
-        { std::free(_addr); }
+        { std::free(_addr); close(_socket); }
 
     mac get_mac_address()
     {
@@ -184,7 +184,7 @@ namespace network
         int sock = make_socket();
         if (sock < 0) return -1;
 
-        if (!connect_to_ip(sock, address, 1420))
+        if (!connect_to_ip(sock, address, _FIN_PORT))
         {
             close(sock);
             return -2;
@@ -196,13 +196,14 @@ namespace network
 
 namespace Cloud
 {
+    /*          File             */
     File::File(Status s) :
         iterator(0), filesize(0), status(s), buffer(nullptr)
     {   }
 
     File::File(c_uint size) :
         iterator(0), status(OK), filesize(size), buffer( CHAR_ALLOC(size) )
-    {   }
+    { set_ok(true); }
 
     void File::read(void* ptr, c_uint size)
     {
@@ -212,6 +213,29 @@ namespace Cloud
 
     File::~File()
     { std::free(buffer); }
+
+    /*      ServerStream         */
+    ServerStream::ServerStream(const char* filename, Cloud::Address address) :
+        fname(filename)
+    {
+        _socket = network::connect_socket( ADDR_FROM_ENUM(address) );
+
+        if (make_request("LOGIN ADMIN ADMIN123", _socket) == "OK")
+            set_ok(true);
+    }
+
+    void ServerStream::read(char* dest, c_uint size) const
+    {
+        assert(ok());
+
+        // Ugly concatenation to make a request to the server with the command:
+        // STRM 'filename' 'byte-length'
+        // and copy it over to the destination buffer passed as an argument.
+        strcpy(dest, make_request( network::str_concat(
+            "STRM ", fname, " ", std::to_string(size).c_str()).c_str(), 
+            _socket).c_str()
+        );
+    }
 
     void make_request(const char* command, const int socket, char* buffer, int size)
     {

@@ -2,14 +2,15 @@
 
 #define TEMP_TYPES(type)\
     template void deserialize<std::ifstream>(type, std::ifstream&);\
-    template void deserialize<Cloud::File*>(type, Cloud::File*&);
+    template void deserialize<Cloud::File>(type, Cloud::File&);
 
 namespace finapi
 {
     /*        BufferStruct.h         */ 
 namespace filemethods
 {
-    void read(std::ifstream& file, STRING_FIELD& string)
+    template<typename _Stream>
+    void read(_Stream& file, STRING_FIELD& string)
     {
         const unsigned int size = read<unsigned int>(file);
         string = STRING_ALLOC(size);
@@ -18,14 +19,9 @@ namespace filemethods
         file.read(string, size);
     }
 
-    void read(Cloud::File* file, STRING_FIELD& string)
-    {
-        const unsigned int size = read<unsigned int>(file);
-        string = STRING_ALLOC(size);
-        GET_CHAR(string, size) = '\0';
-
-        file->read(string, size);
-    }
+    template void read<Cloud::File>        (Cloud::File&,         STRING_FIELD&);
+    template void read<std::ifstream>      (std::ifstream&,       STRING_FIELD&);
+    template void read<Cloud::ServerStream>(Cloud::ServerStream&, STRING_FIELD&);
 
     template<typename T>
     unsigned int read_magic_number(T& file)
@@ -33,8 +29,9 @@ namespace filemethods
         return filemethods::read<unsigned int>(file);
     }
 
-    template unsigned int read_magic_number<std::ifstream>(std::ifstream&);
-    template unsigned int read_magic_number<Cloud::File*>(Cloud::File*&);
+    template unsigned int read_magic_number<Cloud::File>        (Cloud::File&);
+    template unsigned int read_magic_number<std::ifstream>      (std::ifstream&);
+    template unsigned int read_magic_number<Cloud::ServerStream>(Cloud::ServerStream&);
 }
 
     //   DataTag
@@ -84,7 +81,7 @@ namespace filemethods
 
     //   Company
     template<typename T>
-    void deserialize(Company** data, T& file)
+    void deserialize(Company*& company, T& file)
     {
         assert(file);
 
@@ -93,7 +90,6 @@ namespace filemethods
 
         // Create a pointer reference and allocate the memory for a company
         // object as well as a string pointer
-        Company*& company    = *(data);
         company              = new Company;
         STRING_LIST str_iter = (char**)company;
 
@@ -109,7 +105,7 @@ namespace filemethods
 
     //  Statement
     template<typename T>
-    void deserialize(Statement** data, T& file)
+    void deserialize(Statement*& statement, T& file)
     {
         assert(file);
 
@@ -118,7 +114,6 @@ namespace filemethods
 
         // Create a reference pointer to the Statement in which we are manipulating
         // as well as a string list pointer to the fields of the statement.
-        Statement*& statement = *(data);
         statement = new Statement;
         STRING_LIST str_iter = (char**)statement;
 
@@ -137,7 +132,7 @@ namespace filemethods
     }
 
     // Define template types
-    TEMP_TYPES(Company**);
-    TEMP_TYPES(Statement**);
+    TEMP_TYPES(Company*&);
+    TEMP_TYPES(Statement*&);
     TEMP_TYPES(std::vector<DataTag*>&);
 }
