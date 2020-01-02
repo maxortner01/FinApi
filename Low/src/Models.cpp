@@ -146,6 +146,7 @@ namespace filemethods
         }
     }
 
+    /*        EodAdj.h         */ 
     //   EodAdj
     template<typename T>
     void deserialize(std::vector<EodAdj*>& data, T& file)
@@ -179,7 +180,104 @@ namespace filemethods
                 filemethods::read(file, float_iter + j);
             }
         }
+        // FIGURE OUT BUG
+        data.pop_back();
         data.shrink_to_fit();
+    }
+
+    /**
+     * EODADJ IMPLEMENTATION
+     */
+
+    /* METHODS */
+
+    backtest::Bar EodAdj::generate_bar()
+        { return backtest::Bar(openPrice, high, low, close, volume); }
+
+    EodAdjFields* EodAdj::get_fields()
+    {
+        EodAdjFields* newFields = new EodAdjFields; 
+        return newFields;
+    }
+
+    float EodAdj::greater_than(const EodAdj& rhs, std::string field)
+    {
+        if (field == "Open")
+            return openPrice > rhs.openPrice;
+        else if (field == "High")
+            return high > rhs.high;
+        else if (field == "Low")
+            return low > rhs.low;
+        else if (field == "Close")
+            return close > rhs.close;
+        else if (field == "AdjClose")
+            return adjClose > rhs.adjClose;
+        else if (field == "Volume")
+            return volume > rhs.volume;
+        else if (field == "DivAmount")
+            return divAmount > rhs.divAmount;
+        else if (field == "SplitCo")
+            return splitCo > rhs.splitCo;
+        else if (field == "Date")
+            return date > rhs.date;
+    }
+    float EodAdj::less_than(const EodAdj& rhs, std::string field)
+    {
+        if (field == "Open")
+            return openPrice < rhs.openPrice;
+        else if (field == "High")
+            return high < rhs.high;
+        else if (field == "Low")
+            return low < rhs.low;
+        else if (field == "Close")
+            return close < rhs.close;
+        else if (field == "AdjClose")
+            return adjClose < rhs.adjClose;
+        else if (field == "Volume")
+            return volume < rhs.volume;
+        else if (field == "DivAmount")
+            return divAmount < rhs.divAmount;
+        else if (field == "SplitCo")
+            return splitCo < rhs.splitCo;
+        else if (field == "Date")
+            return date < rhs.date;
+    }
+
+    void EodAdj::display()
+    {
+        std::cout << "\nDate=\t"   << date.month << "/" << date.day << "/" << date.year
+                  << "\nOpen=\t"   << openPrice
+                  << "\nHigh=\t"   << high
+                  << "\nLow=\t"    << low
+                  << "\nClose=\t"  << close 
+                  << "\nadjCl=\t"  << adjClose
+                  << "\nvolume=\t" << volume
+                  << "\ndivAm=\t"  << divAmount
+                  << "\nSplit=\t"  << splitCo << std::endl;
+    }
+
+    /**
+     * EODADJFIELDS IMPLEMENTATION
+     */
+       
+    /* CONSTRUCTOR */
+
+    EodAdjFields::EodAdjFields() :
+        openPrice("Open"), high("High"), low("Low"), close("Close"), adjClose("AdjClose"), 
+        volume("Volume"), divAmount("DivAmount"), splitCo("SplitCo"), date("Date") { }
+
+    /* METHODS */ 
+
+    void EodAdjFields::display()
+    {
+        std::cout << openPrice << ", "
+                  << high << ", "
+                  << low << ", "
+                  << close << ", "
+                  << adjClose << ", "
+                  << volume << ", "
+                  << divAmount << ", "
+                  << splitCo << std::endl;
     }
 
     // Define template types

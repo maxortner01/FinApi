@@ -32,7 +32,36 @@ namespace backtest
         }
     }
 
-    /*  CLASS : OrderEvent */    
+    /**
+     * MARKET_EVENT IMPLEMENTATION
+     */ 
+
+    /* CONSTRUCTORS */
+
+    MarketEvent::MarketEvent() :
+            Event(), event_type("MARKET") { }
+
+    /**
+     * SIGNAL_EVENT IMPLEMENTATION
+     */   
+
+    /* CONSTRUCTORS */
+
+    SignalEvent::SignalEvent(std::string sym, TimeStamp d_time, std::string sig_type) :
+        Event(), event_type("SIGNAL"), symbol(sym), date_time(d_time), signal_type(sig_type)
+    { }
+
+    /**
+     * ORDER_EVENT IMPLEMENTATION
+     */  
+
+    /* CONSTRUCTORS */
+
+    OrderEvent::OrderEvent(std::string sym, std::string ord_type, std::string dirx, unsigned int quant) :
+        Event(), event_type("ORDER"), symbol(sym), order_type(ord_type), direction(dirx), quantity(quant)
+    { }
+
+    /* METHODS */
 
     /**
      * @brief Output the values within the Order
@@ -46,7 +75,19 @@ namespace backtest
                   << ", Direction="<< direction << std::endl;
     }
 
-    /*  CLASS : FillEvent */  
+    /**
+     * FILL_EVENT IMPLEMENTATION
+     */ 
+
+    /* CONSTRUCTORS */
+
+    FillEvent::FillEvent(std::string t_index, std::string sym, std::string exch, std::string dir,
+                         BrokerType t_broker, unsigned int quant, float f_cost) :
+        Event(), event_type("FILL"), time_index(t_index), symbol(sym), exchange(exch), 
+        direction(dir), broker(t_broker), quantity(quant), fill_cost(f_cost)
+    { }
+
+    /* METHODS */
 
     double FillEvent::calculate_final_cost()
     {

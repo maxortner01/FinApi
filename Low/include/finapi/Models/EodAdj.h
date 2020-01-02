@@ -31,21 +31,13 @@ namespace finapi
         std::string splitCo;
         std::string date;
 
-        EodAdjFields() :
-            openPrice("Open"), high("High"), low("Low"), close("Close"), adjClose("AdjClose"), 
-            volume("Volume"), divAmount("DivAmount"), splitCo("SplitCo"), date("Date") { }
+        /* CONSTRUCTOR */
 
-        void display()
-        {
-            std::cout << openPrice << ", "
-                      << high << ", "
-                      << low << ", "
-                      << close << ", "
-                      << adjClose << ", "
-                      << volume << ", "
-                      << divAmount << ", "
-                      << splitCo << std::endl;
-        }
+        EodAdjFields();
+
+        /* METHODS */
+
+        void display();
     };
 
     struct EodAdj
@@ -63,73 +55,15 @@ namespace finapi
 
         /* METHODS */
 
-        backtest::Bar generate_bar()
-            { return backtest::Bar(openPrice, high, low, close, volume); }
+        backtest::Bar generate_bar();
 
-        EodAdjFields* get_fields()
-        {
-            EodAdjFields* newFields = new EodAdjFields; 
-            return newFields;
-        }
+        EodAdjFields* get_fields();
 
-        //bool is_valid_field(std::string field);
+        float greater_than(const EodAdj&, std::string);
 
-        float greater_than(const EodAdj& rhs, std::string field)
-        {
-            if (field == "Open")
-                return openPrice > rhs.openPrice;
-            else if (field == "High")
-                return high > rhs.high;
-            else if (field == "Low")
-                return low > rhs.low;
-            else if (field == "Close")
-                return close > rhs.close;
-            else if (field == "AdjClose")
-                return adjClose > rhs.adjClose;
-            else if (field == "Volume")
-                return volume > rhs.volume;
-            else if (field == "DivAmount")
-                return divAmount > rhs.divAmount;
-            else if (field == "SplitCo")
-                return splitCo > rhs.splitCo;
-            else if (field == "Date")
-                return date > rhs.date;
-        }
+        float less_than(const EodAdj&, std::string);
 
-        float less_than(const EodAdj& rhs, std::string field)
-        {
-            if (field == "Open")
-                return openPrice < rhs.openPrice;
-            else if (field == "High")
-                return high < rhs.high;
-            else if (field == "Low")
-                return low < rhs.low;
-            else if (field == "Close")
-                return close < rhs.close;
-            else if (field == "AdjClose")
-                return adjClose < rhs.adjClose;
-            else if (field == "Volume")
-                return volume < rhs.volume;
-            else if (field == "DivAmount")
-                return divAmount < rhs.divAmount;
-            else if (field == "SplitCo")
-                return splitCo < rhs.splitCo;
-            else if (field == "Date")
-                return date < rhs.date;
-        }
-
-        void display()
-        {
-            std::cout << "\nDate=\t"   << date.month << "/" << date.day << "/" << date.year
-                      << "\nOpen=\t"   << openPrice
-                      << "\nHigh=\t"   << high
-                      << "\nLow=\t"    << low
-                      << "\nClose=\t"  << close 
-                      << "\nadjCl=\t"  << adjClose
-                      << "\nvolume=\t" << volume
-                      << "\ndivAm=\t"  << divAmount
-                      << "\nSplit=\t"  << splitCo << std::endl;
-        }
+        void display();
     };
 
     /**
