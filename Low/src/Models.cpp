@@ -131,8 +131,45 @@ namespace filemethods
         }
     }
 
+    //   EodAdj
+    template<typename T>
+    void deserialize(std::vector<EodAdj*>& data, T& file)
+    {
+        assert(file);
+
+		// Read the magic number
+		assert(filemethods::read_magic_number(file) == EOD_ADJ_MN);
+
+        // Clean the list and reserve memory for the alloted amount of objects
+        clean_list(data);
+
+        while(!filemethods::eof(file))
+        {
+            // Create a new DataTag object and store in list as well as collecting a few
+            // handles to the data
+            EodAdj* newEod = new EodAdj;
+            float* float_iter = (float*)newEod;
+            data.push_back(newEod);
+
+            // Read in date
+            newEod->date = filemethods::read<TimeStamp>(file);
+
+            // Field count specific to this data type
+            const unsigned int FIELD_COUNT = 8;
+            
+            for (int j = 0; j < FIELD_COUNT; j++)
+            {
+                // Allocate a character buffer, and copy over
+                // data from file into the buffer
+                filemethods::read(file, float_iter + j);
+            }
+        }
+        data.shrink_to_fit();
+    }
+
     // Define template types
     TEMP_TYPES(Company*&);
     TEMP_TYPES(Statement*&);
     TEMP_TYPES(std::vector<DataTag*>&);
+    TEMP_TYPES(std::vector<EodAdj*>&);
 }

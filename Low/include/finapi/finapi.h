@@ -25,6 +25,8 @@
 #include <cstdlib>  // malloc, free
 #include <string>   // string class
 #include <cstring>  // memset
+#include <queue>
+#include <map>
 
 /*          Network         */
 #include "Network/File.h"
@@ -36,7 +38,13 @@
 #include "Models/Company.h"
 #include "Models/DataTag.h" 
 #include "Models/Statement.h" 
+#include "Models/EodAdj.h"
+#include "Models/FinDataFrame.h"
 
+/*        Backtester        */
+#include "Backtester/Event.h"
+#include "Backtester/DataHandler.h"
+#include "Backtester/ExSystemStructs.h"
 #define assert(expr) if (!(expr)) {\
     printf("Assertion failed in file %s on expression\n\n%s\n\non line %d\n", __FILE__, #expr, __LINE__);\
     exit(1); }

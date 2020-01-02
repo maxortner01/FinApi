@@ -24,6 +24,8 @@
 #include "../Core/Core.h"
 #include "../Network/ServerStream.h"
 
+#define assert(expr) if (!(expr)) exit(0);
+
 #define CONSTRUCT_BUFF(class_name, f)\
     class_name() : fields(f) {    }\
     private:\
@@ -41,6 +43,7 @@
 #define DATA_TAG_MN  0
 #define STATEMENT_MN 1
 #define COMPANY_MN   2
+#define EOD_ADJ_MN   4
 /* --------------------------------------------- */
 
 /* ------------ STRING DEFINITIONS ------------ */
