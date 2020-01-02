@@ -37,6 +37,8 @@
 
 #endif
 
+#define ADDR_FROM_ENUM(enum) finapi::Cloud::_ADDR::addresses[enum]
+
 namespace finapi
 {
 namespace Cloud
@@ -45,14 +47,18 @@ namespace _ADDR
 {
     static const char* addresses[] = {
         "127.0.0.1",
-        "192.168.1.142"
+        "192.168.1.142",
+        "99.83.27.95"
     };
 }
+
+    class File;
 
     enum Address
     {
         LocalHost,
-        LocalServer
+        LocalServer,
+        Server
     };
 
     enum Status
@@ -61,27 +67,35 @@ namespace _ADDR
         DNE,
         EMPTY,
         SOCKET_FAIL,
-        CONNECT_FAIL
+        CONNECT_FAIL,
+        LOGIN_FAIL
     };
 
-    struct File
+    class StreamCheck
     {
-        Status status;
-        c_uint filesize;
-        char*  buffer;
+        bool _ok;
 
-        File(Status s = EMPTY);
+    protected:
+        void set_ok(bool value) { _ok = value; }
 
-        File(c_uint size);
+    public:
+        StreamCheck() : _ok(false)
+        {   }
 
-        void read(void* ptr, c_uint size);
+        const bool ok() const { return _ok; }
+        explicit operator bool() const { return ok(); }
+    };
 
-        bool eof() const;
+    struct ReadStatus
+    {
+        ReadStatus(bool g = true) :
+            _good(g)
+        {   }
 
-        ~File();
-    
+        bool good() { return _good; }
+
     private:
-        unsigned int iterator;
+        bool _good;
     };
 
     /**
@@ -132,8 +146,8 @@ namespace _ADDR
      */
     void request_file(const char* filename, const int i, const int filesize, char* buffer, const char* address);
     
-    void get_file(const char* filename, const char* address, File*& file);
+    void get_file(const char* filename, const char* address, File& file);
 
-    void get_file(const char* filename, Address address, File*& file);
+    void get_file(const char* filename, Address address, File& file);
 }
 }
