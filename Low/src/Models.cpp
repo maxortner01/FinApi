@@ -146,8 +146,6 @@ namespace filemethods
         }
     }
 
-    /*---------- Josh Ortner ----------*/
-
     //   EodAdj
     template<typename T>
     void deserialize(std::vector<EodAdj*>& data, T& file)

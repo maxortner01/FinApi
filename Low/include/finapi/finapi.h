@@ -26,6 +26,8 @@
 #include <cstdlib>  // malloc, free
 #include <string>   // string class
 #include <cstring>  // memset
+#include <queue>
+#include <map>
 
 /*          Network         */
 #include "Network/Network.h"
@@ -36,3 +38,9 @@
 #include "Models/DataTag.h" 
 #include "Models/Statement.h" 
 #include "Models/EodAdj.h"
+#include "Models/FinDataFrame.h"
+
+/*        Backtester        */
+#include "Backtester/Event.h"
+#include "Backtester/DataHandler.h"
+#include "Backtester/ExSystemStructs.h"
