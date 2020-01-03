@@ -1,6 +1,5 @@
 #include "finapi/finapi.h"
 
-#define _FIN_DEBUG
 #ifdef _FIN_WINDOWS
 
 int inet_pton(int af, const char *src, void *dst)
@@ -223,10 +222,10 @@ namespace Cloud
     { std::free(buffer); }
 
     /*      ServerStream         */
-    ServerStream::ServerStream(const char* filename, Cloud::Address address) :
+    ServerStream::ServerStream(const char* filename, const char* address) :
         fname(filename), filesize(0), it(0)
     {
-        _socket = network::connect_socket( ADDR_FROM_ENUM(address) );
+        _socket = network::connect_socket( address );
 
         if (make_request("LOGIN ADMIN ADMIN123", _socket) == "OK")
             set_ok(true);
@@ -244,6 +243,10 @@ namespace Cloud
             sizeof(unsigned int)
         );
     }
+
+    ServerStream::ServerStream(const char* filename, Cloud::Address address) :
+        ServerStream(filename, ADDR_FROM_ENUM(address))
+    {   }
 
     ReadStatus ServerStream::read(char* dest, c_uint size)
     {
@@ -264,6 +267,11 @@ namespace Cloud
         it += size;
 
         return (strlen(dest) == size)?(ReadStatus()):(ReadStatus(false));
+    }
+
+    void ServerStream::seek(c_uint bytes)
+    {
+        it = bytes;
     }
 
     void make_request(const char* command, const int socket, char* buffer, int size)
@@ -309,18 +317,20 @@ namespace Cloud
 
     void request_file(const char* filename, const int i, const int filesize, char* buffer, const char* address)
     {
-        int sock = network::connect_socket(address);
+        static unsigned int read = 0;
 
-        if (make_request("LOGIN ADMIN ADMIN123", address) != "OK")
-            { close(sock); return; }
+        unsigned int block_size = _FIN_BUFFER_SIZE;
+        c_uint END_BLOCK = _FIN_BUFFER_SIZE * (i + 1);
 
-        std::string command = network::str_concat("REQ ", filename, " ", std::to_string(i));
-        make_request(command.c_str(), sock, buffer + (_FIN_BUFFER_SIZE * i), filesize);
-        
-        close(sock);
+        if (END_BLOCK > filesize)
+            block_size = filesize - (_FIN_BUFFER_SIZE * i);
+
+        Cloud::ServerStream stream(filename, address);
+        stream.seek(i * _FIN_BUFFER_SIZE);
+        stream.read(buffer + (_FIN_BUFFER_SIZE * i), block_size);
     }
 
-    void get_file(const char* filename, const char* address, File*& file)
+    void get_file(const char* filename, const char* address, File*& file, bool threaded)
     {
         time_point(start);
 
@@ -345,7 +355,12 @@ namespace Cloud
         threads.reserve(chunks);
 
         for (int i = 0; i < chunks; i++)
-            threads.push_back(new std::thread(request_file, filename, i, filesize, file->buffer, address));
+        {
+            if (threaded)
+                threads.push_back(new std::thread(request_file, filename, i, filesize, file->buffer, address));
+            else
+                request_file(filename, i, filesize, file->buffer, address);
+        }
 
     #ifdef _FIN_DEBUG
         std::cout << "There are " << threads.size() << " threads.\n";
@@ -363,9 +378,9 @@ namespace Cloud
         logmsg_ms("File received in ");
     }
 
-    void get_file(const char* filename, Address address, File*& file)
+    void get_file(const char* filename, Address address, File*& file, bool threaded)
     {
-        get_file(filename, _ADDR::addresses[address], file);
+        get_file(filename, _ADDR::addresses[address], file, threaded);
     }
 }
 }

@@ -27,9 +27,12 @@ namespace Cloud
         unsigned int filesize;
 
     public:
+        ServerStream(const char* filename, const char* address);
         ServerStream(const char* filename, Cloud::Address address);
 
         ReadStatus read(char* dest, c_uint size);
+
+        void seek(c_uint bytes);
     };
 }
 }

@@ -48,7 +48,7 @@
 #define STRING_FIELD char*
 #define STRING_LIST  char**
 #define GET_STRING(var, index) *(var + index)
-#define GET_CHAR(var, index)   GET_STRING(var, index)
+#define GET_CHAR(var, index) GET_STRING(var, index)
 #define STRING_ALLOC(length) (char*)std::malloc(length + 1)
 /* --------------------------------------------- */
 
