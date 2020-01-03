@@ -44,6 +44,7 @@
 #include "Models/Statement.h" 
 #include "Models/EodAdj.h"
 #include "Models/FinDataFrame.h"
+#include "Models/BufferStruct.h"
 
 /*        Backtester        */
 #include "Backtester/Event.h"

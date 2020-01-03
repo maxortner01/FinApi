@@ -133,8 +133,8 @@ namespace filemethods
 
     /*        EodAdj.h         */ 
     //   EodAdj
-    template<typename T>
-    void deserialize(std::vector<EodAdj*>& data, T& file)
+    template<typename Stream>
+    void deserialize(std::vector<EodAdj*>& data, Stream& file)
     {
         assert(file);
 
@@ -144,21 +144,14 @@ namespace filemethods
         // Clean the list and reserve memory for the alloted amount of objects
         clean_list(data);
 
-        // HEY FIX THIS, This method doesnt exist anymore and should be the reason
-        // you're getting an error
-        while(!filemethods::eof(file))
+        EodAdj* newEod = new EodAdj;
+
+        while(filemethods::read(file, &newEod->date))
         {
-            // Create a new DataTag object and store in list as well as collecting a few
-            // handles to the data
-            EodAdj* newEod = new EodAdj;
-            float* float_iter = (float*)newEod;
-            data.push_back(newEod);
-
-            // Read in date
-            newEod->date = filemethods::read<TimeStamp>(file);
-
             // Field count specific to this data type
             const unsigned int FIELD_COUNT = 8;
+
+            float* float_iter = &newEod->openPrice;
             
             for (int j = 0; j < FIELD_COUNT; j++)
             {
@@ -166,9 +159,10 @@ namespace filemethods
                 // data from file into the buffer
                 filemethods::read(file, float_iter + j);
             }
+
+            data.push_back(newEod);
+            newEod = new EodAdj;
         }
-        // FIGURE OUT BUG
-        data.pop_back();
         data.shrink_to_fit();
     }
 

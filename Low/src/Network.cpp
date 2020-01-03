@@ -216,11 +216,6 @@ namespace Cloud
         return ReadStatus();
     }
 
-    bool File::eof() const
-    {
-        return (iterator >= filesize);
-    }
-
     File::~File()
     { std::free(buffer); }
 

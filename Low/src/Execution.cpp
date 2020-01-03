@@ -110,7 +110,6 @@ namespace backtest
      */
     SymbolList::SymbolList(std::ifstream& inFile)
     {
-        
         std::string sym;
 
         while(getline(inFile, sym))

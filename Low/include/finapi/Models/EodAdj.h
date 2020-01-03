@@ -42,6 +42,7 @@ namespace finapi
 
     struct EodAdj
     {
+        TimeStamp date;
         float openPrice;
         float high;      
         float low;       
@@ -50,8 +51,6 @@ namespace finapi
         float volume;    
         float divAmount; 
         float splitCo;   
-
-        TimeStamp date;
 
         /* METHODS */
 
