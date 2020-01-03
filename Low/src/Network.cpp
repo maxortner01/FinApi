@@ -38,8 +38,10 @@ namespace finapi
 {
 namespace network
 {
+    // The magic error that comes from nowhere. I guess this will
+    // never be freed
     object::~object()
-        { std::free(_addr); close(_socket); }
+        { /* std::free(_addr); */ close(_socket); }
 
     mac get_mac_address()
     {
@@ -101,7 +103,7 @@ namespace network
     int make_socket()
     {
         WSAStart();
-        return socket(AF_INET, SOCK_STREAM, 0);
+        return socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     }
 
     int set_options(const int sock) 
@@ -156,6 +158,7 @@ namespace network
         if (inet_pton(AF_INET, ip, &serv_addr.sin_addr) <= 0)
             return 0;
         
+        /*
         sockaddr_in* addr;
         for (int lower = 9000; lower <= 10000 && !addr; lower++)
             addr = bind_socket(sock, lower);
@@ -166,9 +169,9 @@ namespace network
             std::cout << "Failed to bind a port!\n";
         #endif
             return 0;
-        }
+        } */
 
-        if (connect(sock, (sockaddr*)&serv_addr, sizeof(sockaddr)) < 0)
+        if (connect(sock, (sockaddr*)&serv_addr, sizeof(serv_addr)) < 0)
         {
         #ifdef _FIN_DEBUG
             std::cout << "Connection failed with error code " << errno << ": " << strerror(errno) << "\n";
@@ -216,37 +219,51 @@ namespace Cloud
         return ReadStatus();
     }
 
-    bool File::eof() const
-    {
-        return (iterator >= filesize);
-    }
-
     File::~File()
     { std::free(buffer); }
 
     /*      ServerStream         */
     ServerStream::ServerStream(const char* filename, Cloud::Address address) :
-        fname(filename)
+        fname(filename), filesize(0), it(0)
     {
         _socket = network::connect_socket( ADDR_FROM_ENUM(address) );
 
         if (make_request("LOGIN ADMIN ADMIN123", _socket) == "OK")
             set_ok(true);
+
+        if (make_request(network::str_concat("exists ", filename).c_str(), _socket) == "F")
+        {
+            set_ok(false);
+            return;
+        }
+
+        make_request(
+            network::str_concat("SZE ", filename).c_str(), 
+            _socket,
+            (char*)&filesize,
+            sizeof(unsigned int)
+        );
     }
 
-    ReadStatus ServerStream::read(char* dest, c_uint size) const
+    ReadStatus ServerStream::read(char* dest, c_uint size)
     {
         assert(ok());
+
+        if (it >= filesize) return ReadStatus(false);
 
         // Ugly concatenation to make a request to the server with the command:
         // STRM 'filename' 'byte-length'
         // and copy it over to the destination buffer passed as an argument.
-        strcpy(dest, make_request( network::str_concat(
-            "STRM ", fname, " ", std::to_string(size).c_str()).c_str(), 
-            _socket).c_str()
+        make_request(network::str_concat(
+            "STRM ", fname, " ", std::to_string(size).c_str(), " ", std::to_string(it)).c_str(),
+            _socket,
+            dest,
+            size
         );
+        
+        it += size;
 
-        return ReadStatus();
+        return (strlen(dest) == size)?(ReadStatus()):(ReadStatus(false));
     }
 
     void make_request(const char* command, const int socket, char* buffer, int size)

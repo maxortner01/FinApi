@@ -145,7 +145,7 @@ namespace filemethods
 
         // HEY FIX THIS, This method doesnt exist anymore and should be the reason
         // you're getting an error
-        while(!filemethods::eof(file))
+        while(true)
         {
             // Create a new DataTag object and store in list as well as collecting a few
             // handles to the data

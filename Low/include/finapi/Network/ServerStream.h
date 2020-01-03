@@ -21,14 +21,15 @@ namespace Cloud
 {
     class ServerStream : network::object, public StreamCheck
     {
-        bool        _ok;
-        const char* fname;
+        bool         _ok;
+        const char*  fname;
+        unsigned int it;
+        unsigned int filesize;
 
     public:
         ServerStream(const char* filename, Cloud::Address address);
-        ~ServerStream();
 
-        ReadStatus read(char* dest, c_uint size) const;
+        ReadStatus read(char* dest, c_uint size);
     };
 }
 }
