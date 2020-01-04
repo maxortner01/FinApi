@@ -16,6 +16,8 @@
 
 namespace finapi
 {
+namespace models
+{
     /**
      * @brief Simple data model for holding information related to a financial statement.
      * 
@@ -47,4 +49,5 @@ namespace finapi
      */
     template<typename T>
     static void deserialize(Statement** data, T& file);
+}
 }

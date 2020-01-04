@@ -54,10 +54,8 @@
 
 namespace finapi
 {
-    /* MODEL FIELDS TEMPLATE DEFINITION */
-
-    #define EodAdjFields FinFields<EodAdj, 9>
-
+namespace models
+{
     template<typename _Model, int _Count>
     struct FinFields
     {
@@ -65,17 +63,27 @@ namespace finapi
         static const std::string fields[_Count];
     };
 
+/* ------------ MODEL FIELD DEFINITIONS ------------ */
+    #define EodAdjFields    FinFields<EodAdj,    9>
+    #define CompanyFields   FinFields<Company,   5>
+    #define DataTagFields   FinFields<DataTag,   9>
+    #define StatementFields FinFields<Statement, 8>
+/* ------------------------------------------------- */
 
+    /**
+     * @brief Cleans a given list by calling the destructor on each object.
+     * 
+     * @tparam T    Type stored in the list
+     * @param list  List reference
+     */
     template<typename T>
     static void clean_list(std::vector<T*>& list)
     {
         for (int i = 0; i < list.size(); i++)
             CLEAN_OBJ(list[i]);
+        list.clear();
     }
     
-/**
- * @brief Common utility methods for extracting binary data from a given file stream.
- */
 namespace filemethods
 {
     /**
@@ -130,5 +138,6 @@ namespace filemethods
      */
     template<typename T>
     unsigned int read_magic_number(T& file);
+}
 }
 }

@@ -21,17 +21,36 @@
 
 namespace finapi
 {
+namespace models
+{
 #pragma region BUFFERSTRUCT_H
 
-namespace filemethods
-{
-    /* DATA MODEL FIELDS DEFINITIONS */
+#pragma region SECTION_FIELDS
 
     template<>
     const std::string FinFields<EodAdj, 9>::fields[9] = {
         "Date", "Open", "High", "Low", "Close", "AdjClose", "Volume", "DivAmount", "SplitCo"
     };
 
+    template<>
+    const std::string FinFields<Company, 5>::fields[5] = {
+        "cik", "id", "lei", "name", "ticker"
+    };
+
+    template<>
+    const std::string FinFields<DataTag, 9>::fields[9] = {
+        "balance", "factor", "id", "name", "parent", "tag", "unit", "sequence", "value"
+    };
+
+    template<>
+    const std::string FinFields<Statement, 8>::fields[8] = {
+        "end_date", "filing_date", "fiscal_period", "id", "start_date", "statement_code", "type", "fiscal_year"
+    };
+
+#pragma endregion SECTION_FIELDS
+
+namespace filemethods
+{
     template<typename _Stream>
     void read(_Stream& file, STRING_FIELD& string)
     {
@@ -281,4 +300,5 @@ namespace filemethods
     TEMP_TYPES(Statement*&           );
     TEMP_TYPES(std::vector<EodAdj*>& );
     TEMP_TYPES(std::vector<DataTag*>&);
+}
 }
