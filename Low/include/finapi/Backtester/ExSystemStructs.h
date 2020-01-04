@@ -13,11 +13,18 @@
 
 #pragma once
 
-#include <vector>
-#include <string>
+#include "../Core/SysInclude.h"
 
 namespace finapi
 {
+
+    /* Names of possible Brokers */
+
+    enum BrokerType { ALPACA };
+
+    /* All possible Data Models  */
+
+    enum DataModelType { EODADJ };
 
     /**
      * @brief Base struct for data models to define specified fields
@@ -26,6 +33,29 @@ namespace finapi
     struct Fields
     {
         virtual void display() = 0;
+    };
+
+    /**
+     * @brief Encapsulates a time stamp
+     * 
+     */
+    struct TimeStamp
+    {
+        int year;      
+        int month;     
+        int day; 
+
+        TimeStamp() { } 
+
+        TimeStamp(int, int, int);
+
+        TimeStamp(const TimeStamp&);
+
+        const bool operator == (TimeStamp const &);
+
+        const bool operator > (TimeStamp const &);       
+
+        const bool operator < (TimeStamp const &);
     };
 
     /**
@@ -43,23 +73,17 @@ namespace finapi
 
         /* METHODS */
 
-        //static bool compare(ModelStruct lhs, ModelStruct rhs)
-        //{
-        //    if (ascending)
-        //        return lhs.greater_than(rhs, field_to_compare);
-        //    else
-        //        return lhs.less_than(rhs, field_to_compare);
-        //} 
+        static bool compare(ModelStruct, ModelStruct);
 
-        static bool compare(ModelStruct* lhs, ModelStruct* rhs)
-        {
-            if (ascending)
-                return lhs->less_than(*rhs, field_to_compare);
-            else
-                return lhs->greater_than(*rhs, field_to_compare);
-        } 
+        static bool compare_ptr(ModelStruct*, ModelStruct*);
 
     };
+
+    /**
+     * MODEL_COMPARATOR IMPLEMENTATION
+     */ 
+
+    /* STATIC MEMBER INITIALIZATION */
 
     template<typename ModelStruct>
     std::string ModelComparator<ModelStruct>::field_to_compare;
@@ -67,57 +91,45 @@ namespace finapi
     template<typename ModelStruct>
     bool ModelComparator<ModelStruct>::ascending;
 
+    /* STATIC METHODS */
+
     /**
-     * @brief 
+     * @brief Compare two ModelStruct objects
+     *        NOTE: Static members ascending and field_to_compare must be initialized 
      * 
+     * @tparam ModelStruct :
+     * @param lhs          :
+     * @param rhs          : 
+     * @return true        : 
+     * @return false       : 
      */
-    struct TimeStamp
+    template<typename ModelStruct>
+    bool ModelComparator<ModelStruct>::compare(ModelStruct lhs, ModelStruct rhs)
     {
-        int year;      
-        int month;     
-        int day; 
+        if (ascending)
+            return lhs.greater_than(rhs, field_to_compare);
+        else
+            return lhs.less_than(rhs, field_to_compare);
+    } 
 
-        TimeStamp() { } 
-
-        TimeStamp(int y, int m, int d) :
-            year(y), month(m), day(d) { }
-
-        const bool operator == (TimeStamp const &rhs)
-            { return (year == rhs.year) && (month == rhs.month) && (day == rhs.day); }
-
-        const bool operator > (TimeStamp const &rhs)
-        {
-            if (year > rhs.year)
-                return true;
-            else if (year < rhs.year)
-                return false;
-            else if (month > rhs.month)
-                return true;
-            else if (month < rhs.month)
-                return false;
-            else if (day > rhs.day)
-                return true;
-            else
-                return false;           
-        }
-
-        const bool operator < (TimeStamp const &rhs)
-        {
-            if (year < rhs.year)
-                return true;
-            else if (year > rhs.year)
-                return false;
-            else if (month < rhs.month)
-                return true;
-            else if (month > rhs.month)
-                return false;
-            else if (day < rhs.day)
-                return true;
-            else
-                return false;           
-        }
-    };
-
+    /**
+     * @brief Compare two ModelStruct pointers
+     *        NOTE: Static members ascending and field_to_compare must be initialized 
+     * 
+     * @tparam ModelStruct :
+     * @param lhs          :
+     * @param rhs          : 
+     * @return true        : 
+     * @return false       : 
+     */
+    template<typename ModelStruct>
+    bool ModelComparator<ModelStruct>::compare_ptr(ModelStruct* lhs, ModelStruct* rhs)
+    {
+        if (ascending)
+            return lhs->less_than(*rhs, field_to_compare);
+        else
+            return lhs->greater_than(*rhs, field_to_compare);
+    } 
 
 
 namespace backtest
@@ -142,25 +154,19 @@ namespace backtest
 
         /* CONSTRUCTORS */
 
-        Bar(c_fref o, c_fref h, c_fref l, c_fref c, c_fref v) :
-            _open(&o), _high(&h), _low(&l), _close(&c), _volume(&v) { }
+        Bar(c_fref, c_fref, c_fref, c_fref, c_fref);
 
         /* METHODS */
 
-        float open() const
-            { return (*_open); }
+        float open() const;
 
-        float high() const  
-            { return (*_high); }
+        float high() const;
 
-        float low() const
-            { return (*_low); }
+        float low() const;
 
-        float close() const
-            { return (*_close); }
+        float close() const;
 
-        float volume() const
-            { return (*_volume); }
+        float volume() const;
 
     };
 }

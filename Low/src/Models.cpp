@@ -146,33 +146,28 @@ namespace filemethods
         }
     }
 
+    /*        EodAdj.h         */ 
     //   EodAdj
-    template<typename T>
-    void deserialize(std::vector<EodAdj*>& data, T& file)
+    template<typename Stream>
+    void deserialize(std::vector<EodAdj*>& data, Stream& file)
     {
         assert(file);
-
-		// Read the magic number
-		assert(filemethods::read_magic_number(file) == EOD_ADJ_MN);
+        int magic_number;
+		
+        // Read the magic number
+		filemethods::read(file, &magic_number);
 
         // Clean the list and reserve memory for the alloted amount of objects
         clean_list(data);
 
-        // HEY FIX THIS, This method doesnt exist anymore and should be the reason
-        // you're getting an error
-        while(true)
+        EodAdj* newEod = new EodAdj;
+
+        while(filemethods::read(file, &newEod->date))
         {
-            // Create a new DataTag object and store in list as well as collecting a few
-            // handles to the data
-            EodAdj* newEod = new EodAdj;
-            float* float_iter = (float*)newEod;
-            data.push_back(newEod);
-
-            // Read in date
-            newEod->date = filemethods::read<TimeStamp>(file);
-
             // Field count specific to this data type
             const unsigned int FIELD_COUNT = 8;
+
+            float* float_iter = &newEod->openPrice;
             
             for (int j = 0; j < FIELD_COUNT; j++)
             {
@@ -180,8 +175,115 @@ namespace filemethods
                 // data from file into the buffer
                 filemethods::read(file, float_iter + j);
             }
+            newEod->display();
+            data.push_back(newEod);
+            newEod = new EodAdj;
         }
         data.shrink_to_fit();
+    }
+
+    /**
+     * EODADJ IMPLEMENTATION
+     */
+
+    /* METHODS */
+
+    backtest::Bar EodAdj::generate_bar()
+        { return backtest::Bar(adjClose, high, low, close, volume); }
+
+    EodAdjFields* EodAdj::get_fields()
+    {
+        EodAdjFields* newFields = new EodAdjFields; 
+        return newFields;
+    }
+
+    float EodAdj::greater_than(const EodAdj& rhs, std::string field)
+    {
+        if (field == "Open")
+            return openPrice > rhs.openPrice;
+        else if (field == "High")
+            return high > rhs.high;
+        else if (field == "Low")
+            return low > rhs.low;
+        else if (field == "Close")
+            return close > rhs.close;
+        else if (field == "AdjClose")
+            return adjClose > rhs.adjClose;
+        else if (field == "Volume")
+            return volume > rhs.volume;
+        else if (field == "DivAmount")
+            return divAmount > rhs.divAmount;
+        else if (field == "SplitCo")
+            return splitCo > rhs.splitCo;
+        else if (field == "Date")
+            return date > rhs.date;
+    }
+
+    float EodAdj::less_than(const EodAdj& rhs, std::string field)
+    {
+        if (field == "Open")
+            return openPrice < rhs.openPrice;
+        else if (field == "High")
+            return high < rhs.high;
+        else if (field == "Low")
+            return low < rhs.low;
+        else if (field == "Close")
+            return close < rhs.close;
+        else if (field == "AdjClose")
+            return adjClose < rhs.adjClose;
+        else if (field == "Volume")
+            return volume < rhs.volume;
+        else if (field == "DivAmount")
+            return divAmount < rhs.divAmount;
+        else if (field == "SplitCo")
+            return splitCo < rhs.splitCo;
+        else if (field == "Date")
+            return date < rhs.date;
+    }
+
+    void EodAdj::display()
+    {
+        std::cout << "\nDate=\t"   << date.month << "/" << date.day << "/" << date.year
+                  << "\nOpen=\t"   << openPrice
+                  << "\nHigh=\t"   << high
+                  << "\nLow=\t"    << low
+                  << "\nClose=\t"  << close 
+                  << "\nadjCl=\t"  << adjClose
+                  << "\nvolume=\t" << volume
+                  << "\ndivAm=\t"  << divAmount
+                  << "\nSplit=\t"  << splitCo << std::endl;
+    }
+
+    /**
+     * @brief Returns the name of the designated directory
+     * 
+     * @return std::string 
+     */
+    DataModelType EodAdj::model_type()
+        { return EODADJ; }
+
+    /**
+     * EODADJFIELDS IMPLEMENTATION
+     */
+       
+    /* CONSTRUCTOR */
+
+    EodAdjFields::EodAdjFields() :
+        openPrice("Open"), high("High"), low("Low"), close("Close"), adjClose("AdjClose"), 
+        volume("Volume"), divAmount("DivAmount"), splitCo("SplitCo"), date("Date") { }
+
+    /* METHODS */ 
+
+    void EodAdjFields::display()
+    {
+        std::cout << openPrice << ", "
+                  << high << ", "
+                  << low << ", "
+                  << close << ", "
+                  << adjClose << ", "
+                  << volume << ", "
+                  << divAmount << ", "
+                  << splitCo << std::endl;
     }
 
     // Define template types

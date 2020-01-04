@@ -209,9 +209,8 @@ namespace Cloud
 
     ReadStatus File::read(void* ptr, c_uint size)
     {
-        if (iterator > size)
+        if (iterator >= filesize)
             return ReadStatus(false);
-
         std::memcpy(ptr, buffer + iterator, size);
         iterator += size;
 
@@ -345,7 +344,7 @@ namespace Cloud
         unsigned int filesize, chunks;
         make_request(network::str_concat("SZE ", filename).c_str(), sock, (char*)&filesize, sizeof(unsigned int));
         make_request(network::str_concat("CHK ", filename).c_str(), sock, (char*)&chunks,   sizeof(unsigned int));
-        filesize -= 1;
+        //filesize -= 1;
 
         close(sock);
 
