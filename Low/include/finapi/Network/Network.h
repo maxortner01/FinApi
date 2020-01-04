@@ -23,6 +23,8 @@
 
 #   define _FIN_WINDOWS
 #   define SOCK_OPT SO_REUSEADDR // Tedious differences in the OS-specific libraries
+#   define close_connection(socket) closesocket(socket)
+
 
 /*     FUNCTION DEFINITIONS     */
 
@@ -68,6 +70,8 @@ namespace network
 #   include <unistd.h>     // close
 
 #   define SOCK_OPT SO_REUSEADDR | SO_REUSEPORT
+
+#   define close_connection(socket) close(socket)
 
 /*     FUNCTION DEFINITIONS     */
 namespace finapi
