@@ -175,7 +175,7 @@ namespace filemethods
                 // data from file into the buffer
                 filemethods::read(file, float_iter + j);
             }
-
+            newEod->display();
             data.push_back(newEod);
             newEod = new EodAdj;
         }

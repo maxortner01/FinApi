@@ -12,8 +12,6 @@
 
 #pragma once
 
-//#include <string>
-
 #include "../Backtester/ExSystemStructs.h"
 #include "BufferStruct.h"
 
