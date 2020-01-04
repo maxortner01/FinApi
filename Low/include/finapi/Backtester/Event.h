@@ -21,11 +21,6 @@ namespace finapi
 
 namespace backtest
 {
-
-    /* Names of possible Brokers */
-
-    enum BrokerType { ALPACA }; 
-
     /**
      * @brief Base class providing an interface for all inherited events
      *        that will trigger further events in the trading infrastructure.
@@ -34,6 +29,18 @@ namespace backtest
     class Event
     { 
         /* As of right now there will be no specific implementation or interface for base */
+
+        std::string event_type;
+
+        public:
+
+        /* CONSTRUCTORS */
+        
+        Event(std::string);
+        
+        /* METHODS */
+
+        std::string type();
     };
 
     /**
@@ -43,7 +50,6 @@ namespace backtest
     class MarketEvent : public Event
     {
 
-        std::string event_type;
 
     public:
 
@@ -65,8 +71,6 @@ namespace backtest
      */
     class SignalEvent : public Event
     {
-
-        std::string event_type;
         std::string symbol;
         TimeStamp   date_time;
         std::string signal_type;
@@ -75,6 +79,9 @@ namespace backtest
     public:
 
         /* CONSTRUCTORS */
+
+        SignalEvent() :
+            Event("SIGNAL") { }
 
         SignalEvent(std::string, TimeStamp, std::string);
 
@@ -94,8 +101,6 @@ namespace backtest
      */
     class OrderEvent : public Event
     {
-
-        std::string  event_type;
         std::string  symbol;
         std::string  order_type;
         std::string  direction;
@@ -104,6 +109,9 @@ namespace backtest
     public:
 
         /* CONSTRUCTORS */
+
+        OrderEvent() :
+            Event("ORDER") { }
 
         OrderEvent(std::string, std::string, std::string, unsigned int);
 
@@ -130,8 +138,6 @@ namespace backtest
      */
     class FillEvent : public Event
     {
-
-        std::string  event_type; 
         std::string  time_index;
         std::string  symbol;
         std::string  exchange;
@@ -143,6 +149,9 @@ namespace backtest
     public:
 
         /* CONSTRUCTORS */
+
+        FillEvent() :
+            Event("FILL") { }
 
         FillEvent(std::string, std::string, std::string, std::string, BrokerType, unsigned int, float);
 

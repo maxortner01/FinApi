@@ -63,6 +63,8 @@ namespace finapi
         float less_than(const EodAdj&, std::string);
 
         void display();
+
+        DataModelType model_type();
     };
 
     /**

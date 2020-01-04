@@ -137,9 +137,10 @@ namespace filemethods
     void deserialize(std::vector<EodAdj*>& data, Stream& file)
     {
         assert(file);
-
-		// Read the magic number
-		assert(filemethods::read_magic_number(file) == EOD_ADJ_MN);
+        int magic_number;
+		
+        // Read the magic number
+		filemethods::read(file, &magic_number);
 
         // Clean the list and reserve memory for the alloted amount of objects
         clean_list(data);
@@ -173,7 +174,7 @@ namespace filemethods
     /* METHODS */
 
     backtest::Bar EodAdj::generate_bar()
-        { return backtest::Bar(openPrice, high, low, close, volume); }
+        { return backtest::Bar(adjClose, high, low, close, volume); }
 
     EodAdjFields* EodAdj::get_fields()
     {
@@ -202,6 +203,7 @@ namespace filemethods
         else if (field == "Date")
             return date > rhs.date;
     }
+
     float EodAdj::less_than(const EodAdj& rhs, std::string field)
     {
         if (field == "Open")
@@ -236,6 +238,14 @@ namespace filemethods
                   << "\ndivAm=\t"  << divAmount
                   << "\nSplit=\t"  << splitCo << std::endl;
     }
+
+    /**
+     * @brief Returns the name of the designated directory
+     * 
+     * @return std::string 
+     */
+    DataModelType EodAdj::model_type()
+        { return EODADJ; }
 
     /**
      * EODADJFIELDS IMPLEMENTATION

@@ -22,15 +22,7 @@
     printf("Assertion failed in file %s on expression\n\n%s\n\non line %d\n", __FILE__, #expr, __LINE__);\
     exit(1); }
 
-/*      Sys. Includes       */
-#include <fstream>  // ifstream, ofstream
-#include <vector>   // vector class
-#include <thread>   // thread class
-#include <cstdlib>  // malloc, free
-#include <string>   // string class
-#include <cstring>  // memset
-#include <queue>
-#include <map>
+#include "Core/SysInclude.h"
 
 /*          Network         */
 #include "Network/File.h"
@@ -49,4 +41,5 @@
 /*        Backtester        */
 #include "Backtester/Event.h"
 #include "Backtester/DataHandler.h"
+#include "Backtester/Strategy.h"
 #include "Backtester/ExSystemStructs.h"
