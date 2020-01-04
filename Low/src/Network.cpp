@@ -251,7 +251,7 @@ namespace Cloud
     {
         assert(ok());
 
-        if (it >= filesize) return ReadStatus(false);
+        if (it > filesize) return ReadStatus(false);
 
         // Ugly concatenation to make a request to the server with the command:
         // STRM 'filename' 'byte-length'

@@ -18,22 +18,13 @@
 namespace finapi
 {
 
-    /* Names of possible Brokers */
+    /* All possible Brokers */
 
     enum BrokerType { ALPACA };
 
     /* All possible Data Models  */
 
     enum DataModelType { EODADJ };
-
-    /**
-     * @brief Base struct for data models to define specified fields
-     * 
-     */
-    struct Fields
-    {
-        virtual void display() = 0;
-    };
 
     /**
      * @brief Encapsulates a time stamp

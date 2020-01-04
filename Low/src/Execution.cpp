@@ -97,7 +97,6 @@ namespace backtest
         {
             case EODADJ:
                 return "historical-prices";
-                break;
         }
     }
 
@@ -109,7 +108,6 @@ namespace backtest
         {
             case EODADJ:
                 return "eod-adj";
-                break;
         }
     }
 
