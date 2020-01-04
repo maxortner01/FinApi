@@ -146,8 +146,8 @@ namespace _ADDR
      */
     void request_file(const char* filename, const int i, const int filesize, char* buffer, const char* address);
     
-    void get_file(const char* filename, const char* address, File& file);
+    void get_file(const char* filename, const char* address, File*& file, bool threaded = true);
 
-    void get_file(const char* filename, Address address, File& file);
+    void get_file(const char* filename, Address address, File*& file, bool threaded = true);
 }
 }

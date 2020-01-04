@@ -1,8 +1,23 @@
 #include "finapi/finapi.h"
 
+// Macro to forward declare a template function
+#define TYPE_TEMP_FUNC(func_name, retrn, type, ...)\
+    template retrn func_name<type>(__VA_ARGS__)
+
+// Macro to forward declare a void template function
+#define VOID_TEMP_FUNC(func_name, type, ...)\
+    TYPE_TEMP_FUNC(func_name, void, type, __VA_ARGS__)
+
+// Macro to forward declare a deserialize function
+#define DES_TYPE(type1, type2)\
+    VOID_TEMP_FUNC(deserialize, type2, type1, type2&)
+
+// Macro that forward declares a given deserialize function
+// for each stream type
 #define TEMP_TYPES(type)\
-    template void deserialize<std::ifstream>(type, std::ifstream&);\
-    template void deserialize<Cloud::File>(type, Cloud::File&);
+    DES_TYPE(type, std::ifstream);\
+    DES_TYPE(type, Cloud::File);\
+    DES_TYPE(type, Cloud::ServerStream);\
 
 namespace finapi
 {
@@ -19,9 +34,9 @@ namespace filemethods
         file.read(string, size);
     }
 
-    template void read<Cloud::File>        (Cloud::File&,         STRING_FIELD&);
-    template void read<std::ifstream>      (std::ifstream&,       STRING_FIELD&);
-    template void read<Cloud::ServerStream>(Cloud::ServerStream&, STRING_FIELD&);
+    VOID_TEMP_FUNC(read, Cloud::File,         Cloud::File&,         STRING_FIELD&);
+    VOID_TEMP_FUNC(read, std::ifstream,       std::ifstream&,       STRING_FIELD&);
+    VOID_TEMP_FUNC(read, Cloud::ServerStream, Cloud::ServerStream&, STRING_FIELD&);
 
     template<typename T>
     unsigned int read_magic_number(T& file)
@@ -29,9 +44,9 @@ namespace filemethods
         return filemethods::read<unsigned int>(file);
     }
 
-    template unsigned int read_magic_number<Cloud::File>        (Cloud::File&);
-    template unsigned int read_magic_number<std::ifstream>      (std::ifstream&);
-    template unsigned int read_magic_number<Cloud::ServerStream>(Cloud::ServerStream&);
+    TYPE_TEMP_FUNC(read_magic_number, unsigned int, Cloud::File,         Cloud::File&        );
+    TYPE_TEMP_FUNC(read_magic_number, unsigned int, std::ifstream,       std::ifstream&      );
+    TYPE_TEMP_FUNC(read_magic_number, unsigned int, Cloud::ServerStream, Cloud::ServerStream&);
 }
 
     //   DataTag
@@ -272,8 +287,8 @@ namespace filemethods
     }
 
     // Define template types
-    TEMP_TYPES(Company*&);
-    TEMP_TYPES(Statement*&);
+    TEMP_TYPES(Company*&             );
+    TEMP_TYPES(Statement*&           );
+    TEMP_TYPES(std::vector<EodAdj*>& );
     TEMP_TYPES(std::vector<DataTag*>&);
-    TEMP_TYPES(std::vector<EodAdj*>&);
 }
