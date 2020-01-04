@@ -25,6 +25,13 @@ namespace finapi
 
 namespace filemethods
 {
+    /* DATA MODEL FIELDS DEFINITIONS */
+
+    template<>
+    const std::string FinFields<EodAdj, 9>::fields[9] = {
+        "Date", "Open", "High", "Low", "Close", "AdjClose", "Volume", "DivAmount", "SplitCo"
+    };
+
     template<typename _Stream>
     void read(_Stream& file, STRING_FIELD& string)
     {
@@ -203,13 +210,7 @@ namespace filemethods
     backtest::Bar EodAdj::generate_bar()
         { return backtest::Bar(adjClose, high, low, close, volume); }
 
-    EodAdjFields* EodAdj::get_fields()
-    {
-        EodAdjFields* newFields = new EodAdjFields; 
-        return newFields;
-    }
-
-    float EodAdj::greater_than(const EodAdj& rhs, std::string field)
+    bool EodAdj::greater_than(const EodAdj& rhs, std::string field)
     {
         if (field == "Open")
             return openPrice > rhs.openPrice;
@@ -231,7 +232,7 @@ namespace filemethods
             return date > rhs.date;
     }
 
-    float EodAdj::less_than(const EodAdj& rhs, std::string field)
+    bool EodAdj::less_than(const EodAdj& rhs, std::string field)
     {
         if (field == "Open")
             return openPrice < rhs.openPrice;
@@ -274,32 +275,7 @@ namespace filemethods
     DataModelType EodAdj::model_type()
         { return EODADJ; }
 
-    /**
-     * EODADJFIELDS IMPLEMENTATION
-     */
-       
-    /* CONSTRUCTOR */
-
-    EodAdjFields::EodAdjFields() :
-        openPrice("Open"), high("High"), low("Low"), close("Close"), adjClose("AdjClose"), 
-        volume("Volume"), divAmount("DivAmount"), splitCo("SplitCo"), date("Date") { }
-
-    /* METHODS */ 
-
-    void EodAdjFields::display()
-    {
-        std::cout << openPrice << ", "
-                  << high << ", "
-                  << low << ", "
-                  << close << ", "
-                  << adjClose << ", "
-                  << volume << ", "
-                  << divAmount << ", "
-                  << splitCo << std::endl;
-    }
-
 #pragma endregion
-
     // Define template types
     TEMP_TYPES(Company*&             );
     TEMP_TYPES(Statement*&           );

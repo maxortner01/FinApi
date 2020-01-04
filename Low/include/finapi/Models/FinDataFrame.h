@@ -12,26 +12,11 @@
 
 #pragma once
 
-#include <vector>
-#include <algorithm>
-
+#include "../Core/SysInclude.h"
 #include "Models.h"
 
 namespace finapi
 {
-    //template<typename T>
-    //struct isValue
-    //{
-    //    T check_value;
-//
-    //    isValue(T val) : check_value(val) { }
-//
-    //    bool operator()(const T *rhs) const
-    //    {
-    //        return (rhs->)
-    //    }
-    //};
-
     /**
      * @brief Provides a useful interface to interacte with data
      *        after it has been deserialized into its Data Model

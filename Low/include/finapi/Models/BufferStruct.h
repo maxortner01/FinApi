@@ -54,6 +54,18 @@
 
 namespace finapi
 {
+    /* MODEL FIELDS TEMPLATE DEFINITION */
+
+    #define EodAdjFields FinFields<EodAdj, 9>
+
+    template<typename _Model, int _Count>
+    struct FinFields
+    {
+        static c_uint            count = _Count;
+        static const std::string fields[_Count];
+    };
+
+
     template<typename T>
     static void clean_list(std::vector<T*>& list)
     {

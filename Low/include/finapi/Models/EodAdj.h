@@ -12,32 +12,11 @@
 
 #pragma once
 
-#include "../Backtester/ExSystemStructs.h"
+#include "../Execution/ExSystemStructs.h"
 #include "BufferStruct.h"
 
 namespace finapi
 {
-    struct EodAdjFields : Fields
-    {
-        std::string openPrice;
-        std::string high;
-        std::string low;
-        std::string close;
-        std::string adjClose;
-        std::string volume;
-        std::string divAmount;
-        std::string splitCo;
-        std::string date;
-
-        /* CONSTRUCTOR */
-
-        EodAdjFields();
-
-        /* METHODS */
-
-        void display();
-    };
-
     struct EodAdj
     {
         TimeStamp date;
@@ -54,11 +33,9 @@ namespace finapi
 
         backtest::Bar generate_bar();
 
-        EodAdjFields* get_fields();
+        bool greater_than(const EodAdj&, std::string);
 
-        float greater_than(const EodAdj&, std::string);
-
-        float less_than(const EodAdj&, std::string);
+        bool less_than(const EodAdj&, std::string);
 
         void display();
 
