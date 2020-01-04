@@ -18,6 +18,8 @@
 
 namespace finapi
 {
+namespace models
+{
     struct Company
     {
         STRING_FIELD cik;
@@ -38,4 +40,5 @@ namespace finapi
      */
     template<typename T>
     void deserialize(Company** data, T& file);
+}
 }

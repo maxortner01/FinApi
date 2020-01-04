@@ -2,29 +2,29 @@
 
 #ifdef _FIN_WINDOWS
 
-int inet_pton(int af, const char *src, void *dst)
-{
-    struct sockaddr_storage ss;
-    int size = sizeof(ss);
-    char src_copy[INET6_ADDRSTRLEN+1];
+    int inet_pton(int af, const char *src, void *dst)
+    {
+        struct sockaddr_storage ss;
+        int size = sizeof(ss);
+        char src_copy[INET6_ADDRSTRLEN+1];
 
-    ZeroMemory(&ss, sizeof(ss));
-    /* stupid non-const API */
-    strncpy (src_copy, src, INET6_ADDRSTRLEN+1);
-    src_copy[INET6_ADDRSTRLEN] = 0;
+        ZeroMemory(&ss, sizeof(ss));
+        /* stupid non-const API */
+        strncpy (src_copy, src, INET6_ADDRSTRLEN+1);
+        src_copy[INET6_ADDRSTRLEN] = 0;
 
-    if (WSAStringToAddress(src_copy, af, NULL, (struct sockaddr *)&ss, &size) == 0) {
-        switch(af) {
-        case AF_INET:
-        *(struct in_addr *)dst = ((struct sockaddr_in *)&ss)->sin_addr;
-        return 1;
-        case AF_INET6:
-        *(struct in6_addr *)dst = ((struct sockaddr_in6 *)&ss)->sin6_addr;
-        return 1;
+        if (WSAStringToAddress(src_copy, af, NULL, (struct sockaddr *)&ss, &size) == 0) {
+            switch(af) {
+            case AF_INET:
+            *(struct in_addr *)dst = ((struct sockaddr_in *)&ss)->sin_addr;
+            return 1;
+            case AF_INET6:
+            *(struct in6_addr *)dst = ((struct sockaddr_in6 *)&ss)->sin6_addr;
+            return 1;
+            }
         }
+        return 0;
     }
-    return 0;
-}
 
 #else
 
@@ -37,10 +37,11 @@ namespace finapi
 {
 namespace network
 {
+#pragma region NETWORK_H
     // The magic error that comes from nowhere. I guess this will
     // never be freed
     object::~object()
-        { /* std::free(_addr); */ close(_socket); }
+        { /* std::free(_addr); */ close_connection(_socket); }
 
     mac get_mac_address()
     {
@@ -61,7 +62,7 @@ namespace network
         ifc.ifc_buf = buffer;
 
         if (ioctl(sock, SIOCGIFCONF, &ifc) == -1)
-            { close(sock); return r; }
+            { close_connection(sock); return r; }
         
         ifreq* it = ifc.ifc_req;
         const ifreq* end = it + (ifc.ifc_len / sizeof(ifreq));
@@ -92,7 +93,7 @@ namespace network
         if (success)
             std::memcpy(r.address, ifr.ifr_hwaddr.sa_data, 6);
 
-        close(sock);
+        close_connection(sock);
 
         return r;
 
@@ -188,17 +189,20 @@ namespace network
 
         if (!connect_to_ip(sock, address, _FIN_PORT))
         {
-            close(sock);
+            close_connection(sock);
             return -2;
         }
         
         return sock;
     }
+
+#pragma endregion
 }
 
 namespace Cloud
 {
-    /*          File             */
+#pragma region FILE_H
+
     File::File(Status s) :
         iterator(0), filesize(0), status(s), buffer(nullptr)
     {   }
@@ -220,7 +224,10 @@ namespace Cloud
     File::~File()
     { std::free(buffer); }
 
-    /*      ServerStream         */
+#pragma endregion
+
+#pragma region SERVER_STREAM_H
+
     ServerStream::ServerStream(const char* filename, const char* address) :
         fname(filename), filesize(0), it(0)
     {
@@ -273,6 +280,9 @@ namespace Cloud
         it = bytes;
     }
 
+#pragma endregion
+
+#pragma region CCLIENT_H
     void make_request(const char* command, const int socket, char* buffer, int size)
     {
         // Get start time for debugging
@@ -305,7 +315,7 @@ namespace Cloud
     {
         int socket = network::connect_socket(address);
         std::string r = make_request(command, socket);
-        close(socket);
+        close_connection(socket);
         return r;
     }
 
@@ -339,14 +349,14 @@ namespace Cloud
             { file = new File(SOCKET_FAIL); return; }
 
         if (make_request(network::str_concat("exists ", filename).c_str(), sock) == "F")
-            { close(sock); file = new File(DNE); return; }
+            { close_connection(sock); file = new File(DNE); return; }
 
         unsigned int filesize, chunks;
         make_request(network::str_concat("SZE ", filename).c_str(), sock, (char*)&filesize, sizeof(unsigned int));
         make_request(network::str_concat("CHK ", filename).c_str(), sock, (char*)&chunks,   sizeof(unsigned int));
         //filesize -= 1;
 
-        close(sock);
+        close_connection(sock);
 
         file = new File(filesize);
 
@@ -381,5 +391,7 @@ namespace Cloud
     {
         get_file(filename, _ADDR::addresses[address], file, threaded);
     }
+
+#pragma endregion
 }
 }

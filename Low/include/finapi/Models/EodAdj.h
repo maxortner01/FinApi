@@ -17,6 +17,8 @@
 
 namespace finapi
 {
+namespace models
+{
     struct EodAdj
     {
         TimeStamp date;
@@ -53,4 +55,5 @@ namespace finapi
      */
     template<typename T>
     void deserialize(std::vector<EodAdj*>& data, T& file);
+}
 }

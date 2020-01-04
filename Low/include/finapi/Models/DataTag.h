@@ -18,6 +18,8 @@
 
 namespace finapi
 {
+namespace models
+{
     struct DataTag
     {
         STRING_FIELD balance;
@@ -46,4 +48,5 @@ namespace finapi
      */
     template<typename T>
     void deserialize(std::vector<DataTag*>& data, T& file);
+}
 }
