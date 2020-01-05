@@ -226,9 +226,6 @@ namespace filemethods
 
     /* METHODS */
 
-    backtest::Bar EodAdj::generate_bar()
-        { return backtest::Bar(adjClose, high, low, close, volume); }
-
     bool EodAdj::greater_than(const EodAdj& rhs, std::string field)
     {
         if (field == "Open")
@@ -295,6 +292,121 @@ namespace filemethods
         { return EODADJ; }
 
 #pragma endregion
+
+#pragma region MODEL_COMPARATOR_H
+
+    template class ModelComparator<EodAdj>; 
+
+    /**
+     * MODEL_COMPARATOR IMPLEMENTATION
+     */ 
+
+    /* STATIC MEMBER INITIALIZATION */
+
+    template<typename DataModel>
+    std::string ModelComparator<DataModel>::field_to_compare;
+
+    template<typename DataModel>
+    bool ModelComparator<DataModel>::ascending;
+
+    /* STATIC METHODS */
+
+    /**
+     * @brief Compare two DataModel objects
+     *        NOTE: Static members ascending and field_to_compare must be initialized 
+     * 
+     * @tparam DataModel :
+     * @param lhs          :
+     * @param rhs          : 
+     * @return true        : 
+     * @return false       : 
+     */
+    template<typename DataModel>
+    bool ModelComparator<DataModel>::compare(DataModel lhs, DataModel rhs)
+    {
+        if (ascending)
+            return lhs.greater_than(rhs, field_to_compare);
+        else
+            return lhs.less_than(rhs, field_to_compare);
+    } 
+
+    /**
+     * @brief Compare two DataModel pointers
+     *        NOTE: Static members ascending and field_to_compare must be initialized 
+     * 
+     * @tparam DataModel :
+     * @param lhs          :
+     * @param rhs          : 
+     * @return true        : 
+     * @return false       : 
+     */
+    template<typename DataModel>
+    bool ModelComparator<DataModel>::compare_ptr(DataModel* lhs, DataModel* rhs)
+    {
+        if (ascending)
+            return lhs->less_than(*rhs, field_to_compare);
+        else
+            return lhs->greater_than(*rhs, field_to_compare);
+    } 
+
+#pragma endregion
+
+#pragma region TIME_STAMP_H
+
+    /* CONSTRUCTORS */
+
+    /**
+     * @brief Construct a new Time Stamp:: Time Stamp object
+     * 
+     * @param y : year
+     * @param m : month
+     * @param d : day
+     */
+    TimeStamp::TimeStamp(int y, int m, int d) :
+        year(y), month(m), day(d) { }
+
+    TimeStamp::TimeStamp(const TimeStamp& rhs) :
+        year(rhs.year), month(rhs.month), day(rhs.day) { }
+
+    /* OPERATOR OVERLOADS */
+
+    const bool TimeStamp::operator == (TimeStamp const &rhs)
+        { return (year == rhs.year) && (month == rhs.month) && (day == rhs.day); }
+
+    const bool TimeStamp::operator > (TimeStamp const &rhs)
+    {
+        if (year > rhs.year)
+            return true;
+        else if (year < rhs.year)
+            return false;
+        else if (month > rhs.month)
+            return true;
+        else if (month < rhs.month)
+            return false;
+        else if (day > rhs.day)
+            return true;
+        else
+            return false;           
+    }
+
+    const bool TimeStamp::operator < (TimeStamp const &rhs)
+    {
+        if (year < rhs.year)
+            return true;
+        else if (year > rhs.year)
+            return false;
+        else if (month < rhs.month)
+            return true;
+        else if (month > rhs.month)
+            return false;
+        else if (day < rhs.day)
+            return true;
+        else
+            return false;           
+    }
+
+#pragma endregion
+
     // Define template types
     TEMP_TYPES(Company*&             );
     TEMP_TYPES(Statement*&           );

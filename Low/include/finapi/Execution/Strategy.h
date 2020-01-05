@@ -14,13 +14,14 @@
 #pragma once
 
 #include "../Core/SysInclude.h"
+#include "../Core/Models.h"
 
 #include "DataHandler.h"
-//#include "../Models/BufferStruct.h"
+#include "Backtest/FinApiHandler.h"
 
 namespace finapi
 {
-namespace backtest
+namespace execution
 {
 
     /**
@@ -73,7 +74,7 @@ namespace backtest
         
         SymbolList             all_symbols;
         std::queue<Event*>*    events;
-        FinApiHandler<EodAdj>* eod_data;
+        backtest::FinApiHandler<models::EodAdj>* eod_data;
 
         std::unordered_map<std::string, bool> bought;
 
@@ -85,7 +86,7 @@ namespace backtest
 
         /* CONSTRUCTORS */
 
-        BuyAndHold(SymbolList&, std::queue<Event*>&, FinApiHandler<EodAdj>&);
+        BuyAndHold(SymbolList&, std::queue<Event*>&, backtest::FinApiHandler<models::EodAdj>&);
 
         /* METHODS */
 

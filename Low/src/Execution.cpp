@@ -16,66 +16,10 @@ void alpaca_final_cost(unsigned int quantity, double fill_cost, double& final_co
 
 namespace finapi
 {
-    /*        ExSystemStructs.h         */ 
-
-    /**
-     * TIME_STAMP IMPLEMENTATION
-     */ 
-
-    /* CONSTRUCTORS */
-
-    /**
-     * @brief Construct a new Time Stamp:: Time Stamp object
-     * 
-     * @param y : year
-     * @param m : month
-     * @param d : day
-     */
-    TimeStamp::TimeStamp(int y, int m, int d) :
-        year(y), month(m), day(d) { }
-
-    TimeStamp::TimeStamp(const TimeStamp& rhs) :
-        year(rhs.year), month(rhs.month), day(rhs.day) { }
-
-    /* OPERATOR OVERLOADS */
-
-    const bool TimeStamp::operator == (TimeStamp const &rhs)
-        { return (year == rhs.year) && (month == rhs.month) && (day == rhs.day); }
-
-    const bool TimeStamp::operator > (TimeStamp const &rhs)
-    {
-        if (year > rhs.year)
-            return true;
-        else if (year < rhs.year)
-            return false;
-        else if (month > rhs.month)
-            return true;
-        else if (month < rhs.month)
-            return false;
-        else if (day > rhs.day)
-            return true;
-        else
-            return false;           
-    }
-
-    const bool TimeStamp::operator < (TimeStamp const &rhs)
-    {
-        if (year < rhs.year)
-            return true;
-        else if (year > rhs.year)
-            return false;
-        else if (month < rhs.month)
-            return true;
-        else if (month > rhs.month)
-            return false;
-        else if (day < rhs.day)
-            return true;
-        else
-            return false;           
-    }
+    
 
     /*        Event.h         */ 
-namespace backtest
+namespace execution
 {
     /* Protocols for commission calculation */
 
@@ -117,25 +61,25 @@ namespace backtest
 
     /* CONSTRUCTORS */
 
-    Bar::Bar(c_fref o, c_fref h, c_fref l, c_fref c, c_fref v) :
-        _open(&o), _high(&h), _low(&l), _close(&c), _volume(&v) { }
-
-    /* METHODS */
-
-    float Bar::open() const
-        { return (*_open); }
-
-    float Bar::high() const  
-        { return (*_high); }
-
-    float Bar::low() const
-        { return (*_low); }
-
-    float Bar::close() const
-        { return (*_close); }
-
-    float Bar::volume() const
-        { return (*_volume); }
+    //Bar::Bar(c_fref o, c_fref h, c_fref l, c_fref c, c_fref v) :
+    //    _open(&o), _high(&h), _low(&l), _close(&c), _volume(&v) { }
+//
+    ///* METHODS */
+//
+    //float Bar::open() const
+    //    { return (*_open); }
+//
+    //float Bar::high() const  
+    //    { return (*_high); }
+//
+    //float Bar::low() const
+    //    { return (*_low); }
+//
+    //float Bar::close() const
+    //    { return (*_close); }
+//
+    //float Bar::volume() const
+    //    { return (*_volume); }
 
     /**
      * EVENT IMPLEMENTATION
@@ -177,7 +121,7 @@ namespace backtest
      * @param d_time 
      * @param sig_type 
      */
-    SignalEvent::SignalEvent(std::string sym, TimeStamp d_time, std::string sig_type) :
+    SignalEvent::SignalEvent(std::string sym, models::TimeStamp d_time, std::string sig_type) :
         Event("SIGNAL"), symbol(sym), date_time(d_time), signal_type(sig_type)
     { }
 
@@ -284,11 +228,70 @@ namespace backtest
         return true;
     }
 
+    /*     Strategy.h      */
+
+    /**
+     * STRATEGY IMPLEMENTATION
+     */ 
+
+    /* CONSTRUCTORS */
+
+    BuyAndHold::BuyAndHold(SymbolList& s_list, std::queue<Event*>& events, backtest::FinApiHandler<models::EodAdj>& eod_d) :
+        Strategy(), all_symbols(s_list), events(&events), eod_data(&eod_d)
+    { calculate_initial_bought(); }
+
+
+    /* PRIVATE METHODS */
+
+    /**
+     * @brief Adds keys to bought unordered map for
+     *        all symbols and sets them to false
+     * 
+     */
+    void BuyAndHold::calculate_initial_bought()
+    {
+        std::string symbol;
+
+        while (all_symbols.get_next_symbol(symbol))
+        {
+            std::transform(symbol.begin(), symbol.end(), symbol.begin(), ::tolower);
+            bought[symbol] = false;
+        }
+    }
+
+    /**
+     * @brief For "Buy and Hold" we generate a single signal per symbol
+     *        and then no additional signals. This means we are 
+     *        constantly long the market from the date of strategy
+     *        initialisation.
+     *
+     *        Parameters
+     *          - event - A MarketEvent object.
+     * 
+     * @param event 
+     */
+    void BuyAndHold::calculate_signals(Event* event)
+    {
+        std::string symbol;
+
+        if (event->type() == "MARKET")
+        {
+            while (all_symbols.get_next_symbol(symbol))
+            {
+                
+            }    
+        }
+        
+        
+    }
+
+namespace backtest
+{
     /**
      * FIN_API_HANDLER IMPLEMENTATION
      */ 
 
-    template class FinApiHandler<EodAdj>;    
+    template class FinApiHandler<models::EodAdj>;    
 
     /* CONSTRUCTORS */
 
@@ -475,62 +478,7 @@ namespace backtest
         { return _continue_backtest; }
 
     
-    /*     Strategy.h      */
-
-    /**
-     * STRATEGY IMPLEMENTATION
-     */ 
-
-    /* CONSTRUCTORS */
-
-    BuyAndHold::BuyAndHold(SymbolList& s_list, std::queue<Event*>& events, FinApiHandler<EodAdj>& eod_d) :
-        Strategy(), all_symbols(s_list), events(&events), eod_data(&eod_d)
-    { calculate_initial_bought(); }
-
-
-    /* PRIVATE METHODS */
-
-    /**
-     * @brief Adds keys to bought unordered map for
-     *        all symbols and sets them to false
-     * 
-     */
-    void BuyAndHold::calculate_initial_bought()
-    {
-        std::string symbol;
-
-        while (all_symbols.get_next_symbol(symbol))
-        {
-            std::transform(symbol.begin(), symbol.end(), symbol.begin(), ::tolower);
-            bought[symbol] = false;
-        }
-    }
-
-    /**
-     * @brief For "Buy and Hold" we generate a single signal per symbol
-     *        and then no additional signals. This means we are 
-     *        constantly long the market from the date of strategy
-     *        initialisation.
-     *
-     *        Parameters
-     *          - event - A MarketEvent object.
-     * 
-     * @param event 
-     */
-    void BuyAndHold::calculate_signals(Event* event)
-    {
-        std::string symbol;
-
-        if (event->type() == "MARKET")
-        {
-            while (all_symbols.get_next_symbol(symbol))
-            {
-                
-            }    
-        }
-        
-        
-    }
-
+    
+}
 }
 }
