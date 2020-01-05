@@ -13,7 +13,7 @@
 #pragma once
 
 #include "../Core/SysInclude.h"
-#include "Models.h"
+#include "../Core/Models.h"
 
 namespace finapi
 {
@@ -125,10 +125,10 @@ namespace finapi
     void FinDataFrame<DataModel, Stream>::sort_data(std::string field, bool ascd)
     { 
         // set comparator variables
-        ModelComparator<DataModel> comparator;
-        ModelComparator<DataModel>::field_to_compare = field;
-        ModelComparator<DataModel>::ascending = ascd;
-        sort(data.begin(), data.end(), &ModelComparator<DataModel>::compare_ptr);
+        models::ModelComparator<DataModel> comparator;
+        models::ModelComparator<DataModel>::field_to_compare = field;
+        models::ModelComparator<DataModel>::ascending = ascd;
+        sort(data.begin(), data.end(), &models::ModelComparator<DataModel>::compare_ptr);
     }
 
     /**

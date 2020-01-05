@@ -13,7 +13,8 @@
 #pragma once
 
 #include "../Execution/ExSystemStructs.h"
-#include "BufferStruct.h"
+//#include "BufferStruct.h"
+#include "TimeStamp.h"
 
 namespace finapi
 {
@@ -32,8 +33,6 @@ namespace models
         float splitCo;   
 
         /* METHODS */
-
-        backtest::Bar generate_bar();
 
         bool greater_than(const EodAdj&, std::string);
 

@@ -15,7 +15,7 @@
 namespace finapi
 {
     template<typename _Model>
-    class FinDataModel
+    class FinDataModeler
     {
 
     };

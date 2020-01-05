@@ -49,6 +49,21 @@ namespace finapi::network {}
  */
 namespace finapi::Cloud {}
 
+/**
+ * @brief Contains all classes associated with the execution system
+ */
+namespace finapi::execution {}
+
+/**
+ * @brief Contains all classes associated with the backtest execution system
+ */
+namespace finapi::execution::backtest {}
+
+/**
+ * @brief Contains all classes associated with the live execution system
+ */
+namespace finapi::execution::live {}
+
 #pragma endregion
 
 #pragma region Library
@@ -66,8 +81,13 @@ namespace finapi::Cloud {}
 #include "Models/DataTag.h" 
 #include "Models/Statement.h" 
 #include "Models/EodAdj.h"
-#include "Models/FinDataFrame.h"
 #include "Models/BufferStruct.h"
+#include "Models/ModelComparator.h"
+#include "Models/TimeStamp.h"
+
+/*         Modelers         */
+#include "Modelers/FinDataFrame.h"
+#include "Modelers/FinDataModeler.h"
 
 /*        Backtester        */
 #include "Execution/Event.h"

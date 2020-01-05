@@ -18,8 +18,7 @@
 
 namespace finapi
 {
-
-namespace backtest
+namespace execution
 {
     /**
      * @brief Base class providing an interface for all inherited events
@@ -72,7 +71,7 @@ namespace backtest
     class SignalEvent : public Event
     {
         std::string symbol;
-        TimeStamp   date_time;
+        models::TimeStamp   date_time;
         std::string signal_type;
         
 
@@ -83,7 +82,7 @@ namespace backtest
         SignalEvent() :
             Event("SIGNAL") { }
 
-        SignalEvent(std::string, TimeStamp, std::string);
+        SignalEvent(std::string, models::TimeStamp, std::string);
 
     };
 
