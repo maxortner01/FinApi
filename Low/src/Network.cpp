@@ -258,11 +258,12 @@ namespace Cloud
     {
         assert(ok());
 
-        if (it > filesize) return ReadStatus(false);
+        if (it >= filesize) return ReadStatus(false);
 
         // Ugly concatenation to make a request to the server with the command:
         // STRM 'filename' 'byte-length'
         // and copy it over to the destination buffer passed as an argument.
+        std::memset(dest, 0, size);
         make_request(network::str_concat(
             "STRM ", fname, " ", std::to_string(size).c_str(), " ", std::to_string(it)).c_str(),
             _socket,
