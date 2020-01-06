@@ -52,6 +52,8 @@
 #define STRING_ALLOC(length) (char*)std::malloc(length + 1)
 /* --------------------------------------------- */
 
+#include <iostream>
+
 namespace finapi
 {
 namespace models

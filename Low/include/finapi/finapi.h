@@ -87,12 +87,15 @@ namespace finapi::execution::live {}
 
 /*         Modelers         */
 #include "Modelers/FinDataFrame.h"
-#include "Modelers/FinDataModeler.h"
 
-/*        Backtester        */
+/*        Execution         */
 #include "Execution/Event.h"
 #include "Execution/DataHandler.h"
 #include "Execution/Strategy.h"
 #include "Execution/ExSystemStructs.h"
+
+/*        Backtest          */
+#include "Execution/Backtest/FinApiHandler.h"
+
 
 #pragma endregion

@@ -60,7 +60,11 @@ namespace execution
      * 
      *        Should be used primarily as a testing mechanism for the Strategy
      *        class as well as a benchmark upon with to compare other strategies.
-     *  
+     * 
+     *        T-Parameters:
+     *          - _DataHandler - i.e. ApiDataHandler or LiveDataHandler
+     *          - _DataModel   - type of data model used 
+     * 
      *        Parameters:
      *          - bars   : The DataHandler object that provides bar information for specified ticker
      *          - events : The Event Queue object.
@@ -69,12 +73,15 @@ namespace execution
      *          - bought : unordered map of symbols bought: true, false
      * 
      */
+    template<typename _DataHandler, typename _DataModel>
     class BuyAndHold : public Strategy
     {
         
-        SymbolList             all_symbols;
-        std::queue<Event*>*    events;
-        backtest::FinApiHandler<models::EodAdj>* eod_data;
+        SymbolList      all_symbols;
+        EVENT_QUEUE_PTR event_q;
+        //backtest::FinApiHandler<models::EodAdj>* 
+        _DataHandler*   eod_data;
+        _DataModel*     data_model;
 
         std::unordered_map<std::string, bool> bought;
 
@@ -86,11 +93,13 @@ namespace execution
 
         /* CONSTRUCTORS */
 
-        BuyAndHold(SymbolList&, std::queue<Event*>&, backtest::FinApiHandler<models::EodAdj>&);
+        BuyAndHold(SymbolList&, EVENT_QUEUE_PTR, _DataHandler&);
 
         /* METHODS */
 
         void calculate_signals(Event*);
+
+        void display_holdings();
 
     };
 

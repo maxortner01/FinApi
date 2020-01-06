@@ -222,7 +222,7 @@ namespace Cloud
     }
 
     File::~File()
-    { std::free(buffer); }
+    { std::cout << "free" << std::endl; std::free(buffer); std::cout << "free complete" << std::endl; }
 
 #pragma endregion
 

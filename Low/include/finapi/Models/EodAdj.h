@@ -13,7 +13,6 @@
 #pragma once
 
 #include "../Execution/ExSystemStructs.h"
-//#include "BufferStruct.h"
 #include "TimeStamp.h"
 
 namespace finapi
@@ -32,15 +31,7 @@ namespace models
         float divAmount; 
         float splitCo;   
 
-        /* METHODS */
-
-        bool greater_than(const EodAdj&, std::string);
-
-        bool less_than(const EodAdj&, std::string);
-
-        void display();
-
-        DataModelType model_type();
+        static DataModelType model_type();
     };
 
     /**
@@ -54,5 +45,36 @@ namespace models
      */
     template<typename T>
     void deserialize(std::vector<EodAdj*>& data, T& file);
+
+    /**
+     * @brief Returns whether the lhs obj's field data is greater than the rhs
+     *        obj's data
+     * 
+     * @param lhs 
+     * @param rhs 
+     * @param field 
+     * @return true 
+     * @return false 
+     */
+    bool greater_than(const EodAdj& lhs, const EodAdj& rhs, std::string field);
+
+    /**
+     * @brief Returns whether the lhs obj's field data is less than the rhs
+     *        obj's data
+     * 
+     * @param lhs   : EodAdj Data Model object
+     * @param rhs   : EodAdj Data Model object
+     * @param field : Data field to compare
+     * @return true 
+     * @return false 
+     */
+    bool less_than(const EodAdj& lhs, const EodAdj& rhs, std::string field);
+    
+    /**
+     * @brief Display data of Data Model object to terminal
+     * 
+     * @param obj 
+     */
+    void display_model(const EodAdj& obj);
 }
 }

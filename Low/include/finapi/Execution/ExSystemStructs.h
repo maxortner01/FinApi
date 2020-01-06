@@ -25,32 +25,6 @@ namespace finapi
     /* All possible Data Models  */
 
     enum DataModelType { EODADJ };
-
-    /**
-     * @brief Encapsulates a time stamp
-     * 
-     */
-    //struct TimeStamp
-    //{
-    //    int year;      
-    //    int month;     
-    //    int day; 
-//
-    //    TimeStamp() { } 
-//
-    //    TimeStamp(int, int, int);
-//
-    //    TimeStamp(const TimeStamp&);
-//
-    //    const bool operator == (TimeStamp const &);
-//
-    //    const bool operator > (TimeStamp const &);       
-//
-    //    const bool operator < (TimeStamp const &);
-    //};
-
-    
-
     
 
 

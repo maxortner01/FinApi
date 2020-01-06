@@ -20,6 +20,8 @@ namespace finapi
 {
 namespace execution
 {
+    #define EVENT_QUEUE_PTR std::queue<Event*>*
+
     /**
      * @brief Base class providing an interface for all inherited events
      *        that will trigger further events in the trading infrastructure.
@@ -31,7 +33,7 @@ namespace execution
 
         std::string event_type;
 
-        public:
+    public:
 
         /* CONSTRUCTORS */
         
@@ -40,6 +42,8 @@ namespace execution
         /* METHODS */
 
         std::string type();
+
+        virtual void print_event() = 0;
     };
 
     /**
@@ -55,6 +59,13 @@ namespace execution
         /* CONSTRUCTORS */
 
         MarketEvent();
+
+        /* METHODS */
+
+        void print_event()
+        {
+
+        }
 
     };
 
@@ -83,6 +94,10 @@ namespace execution
             Event("SIGNAL") { }
 
         SignalEvent(std::string, models::TimeStamp, std::string);
+
+        /* METHODS */
+
+        void print_event();
 
     };
 
@@ -116,7 +131,7 @@ namespace execution
 
         /* METHODS */
 
-        void printOrder();
+        void print_event();
 
     };
    
@@ -157,6 +172,11 @@ namespace execution
         /* METHODS */
 
         double calculate_final_cost();
+
+        void print_event()
+        {
+            std::cout << "IMPLEMENT" << std::endl;
+        }
 
     };
 }

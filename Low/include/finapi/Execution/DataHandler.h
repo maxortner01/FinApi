@@ -72,7 +72,7 @@ namespace execution
          * Pushes the latest bar to the latest symbol structure for all
          * symbols in the symbol list.
          */
-        virtual void update_models() = 0;
+        virtual void update_latest_data() = 0;
 
     };
 }
