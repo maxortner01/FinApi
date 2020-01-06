@@ -203,26 +203,79 @@ namespace Cloud
 {
 #pragma region FILE_H
 
-    File::File(Status s) :
-        iterator(0), filesize(0), status(s), buffer(nullptr)
+#pragma region FILE
+
+    File::File() :
+        iterator(0), fsize(0), _status(EMPTY), _buffer(nullptr)
     {   }
 
-    File::File(c_uint size) :
-        iterator(0), status(OK), filesize(size), buffer( CHAR_ALLOC(size) )
-    { set_ok(true); }
+    File::File(const char* filename, const char* address) :
+        _status( get_file(filename, address, _buffer, &fsize, false) ), iterator(0)
+    {   
+        if (_status == OK) set_ok(true);
+    }
 
-    ReadStatus File::read(void* ptr, c_uint size)
+    File::File(const char* filename, Cloud::Address address) :
+        File(filename, ADDR_FROM_ENUM( address ))
+    {   }
+
+    ReadStatus File::read(char* ptr, c_uint size)
     {
-        if (iterator >= filesize)
+        if (iterator >= fsize)
             return ReadStatus(false);
-        std::memcpy(ptr, buffer + iterator, size);
+
+        std::memcpy(ptr, _buffer + iterator, size);
         iterator += size;
 
         return ReadStatus();
     }
 
+    void File::close()
+    {
+        std::free(_buffer);
+        _buffer = nullptr;
+        set_ok(false);
+    }
+
+    constexpr Status File::status() const
+    {
+        return _status;
+    }
+
+    constexpr uint File::filesize() const 
+    {
+        return fsize;
+    }
+
+    constexpr uint File::position() const
+    {
+        return iterator;
+    }
+
     File::~File()
-    { std::cout << "free" << std::endl; std::free(buffer); std::cout << "free complete" << std::endl; }
+    { close(); }
+
+#pragma endregion
+
+#pragma region FILE_FRIEND
+
+    FileFriend::FileFriend(File& file) :
+        _file(&file)
+    {   }
+
+    ReadStatus FileFriend::read(char* buffer, c_uint size) 
+    {
+        return _file->read(buffer, size);
+    }
+
+    const bool FileFriend::good() const 
+    {
+        if (!_file->_buffer) return false;
+
+        return _file->good();
+    }
+
+#pragma endregion
 
 #pragma endregion
 
@@ -254,15 +307,21 @@ namespace Cloud
         ServerStream(filename, ADDR_FROM_ENUM(address))
     {   }
 
-    ReadStatus ServerStream::read(char* dest, c_uint size)
+    ReadStatus ServerStream::read(char* dest, uint size)
     {
-        assert(ok());
+        assert(good());
 
-        if (it > filesize) return ReadStatus(false);
+        // If the end of the block is after the end of the file,
+        // change the size to accomidate for it
+        if (it + size > filesize) size = filesize - (it + size);
+
+        // If the iterator is at the end of the file return failed read
+        if (it >= filesize || size == 0) return ReadStatus(false);
 
         // Ugly concatenation to make a request to the server with the command:
         // STRM 'filename' 'byte-length'
         // and copy it over to the destination buffer passed as an argument.
+        std::memset(dest, 0, size);
         make_request(network::str_concat(
             "STRM ", fname, " ", std::to_string(size).c_str(), " ", std::to_string(it)).c_str(),
             _socket,
@@ -272,7 +331,7 @@ namespace Cloud
         
         it += size;
 
-        return (strlen(dest) == size)?(ReadStatus()):(ReadStatus(false));
+        return ReadStatus();
     }
 
     void ServerStream::seek(c_uint bytes)
@@ -299,7 +358,6 @@ namespace Cloud
         recv(socket, buffer, size, 0);
 
         time_point(stop);
-        logmsg_micros("Request made and received in ");
     }
 
     std::string make_request(const char* command, const int socket)
@@ -339,26 +397,26 @@ namespace Cloud
         stream.read(buffer + (_FIN_BUFFER_SIZE * i), block_size);
     }
 
-    void get_file(const char* filename, const char* address, File*& file, bool threaded)
+    Status get_file(const char* filename, const char* address, char*& buffer, uint* fsize, bool threaded)
     {
         time_point(start);
 
         int sock = network::connect_socket(address);
 
-        if (sock < 0)
-            { file = new File(SOCKET_FAIL); return; }
+        if (sock < 0) return SOCKET_FAIL;
 
         if (make_request(network::str_concat("exists ", filename).c_str(), sock) == "F")
-            { close_connection(sock); file = new File(DNE); return; }
+            { close_connection(sock); return DNE; }
 
         unsigned int filesize, chunks;
         make_request(network::str_concat("SZE ", filename).c_str(), sock, (char*)&filesize, sizeof(unsigned int));
         make_request(network::str_concat("CHK ", filename).c_str(), sock, (char*)&chunks,   sizeof(unsigned int));
-        //filesize -= 1;
+        *fsize = filesize;
 
         close_connection(sock);
 
-        file = new File(filesize);
+        buffer = (char*)std::malloc(filesize);
+        std::memset(buffer, 0, filesize);
 
         std::vector<std::thread*> threads;
         threads.reserve(chunks);
@@ -366,14 +424,10 @@ namespace Cloud
         for (int i = 0; i < chunks; i++)
         {
             if (threaded)
-                threads.push_back(new std::thread(request_file, filename, i, filesize, file->buffer, address));
+                threads.push_back(new std::thread(request_file, filename, i, filesize, buffer, address));
             else
-                request_file(filename, i, filesize, file->buffer, address);
+                request_file(filename, i, filesize, buffer, address);
         }
-
-    #ifdef _FIN_DEBUG
-        std::cout << "There are " << threads.size() << " threads.\n";
-    #endif
 
         for (int i = 0; i < threads.size(); i++)
         {
@@ -381,15 +435,14 @@ namespace Cloud
             delete threads[i];
         }
 
-        *(file->buffer + file->filesize) = '\0';
+        *(buffer + filesize) = '\0';
 
         time_point(stop);
-        logmsg_ms("File received in ");
     }
 
-    void get_file(const char* filename, Address address, File*& file, bool threaded)
+    Status get_file(const char* filename, Address address, char*& buffer, uint* fsize, bool threaded)
     {
-        get_file(filename, _ADDR::addresses[address], file, threaded);
+        return get_file(filename, _ADDR::addresses[address], buffer, fsize, threaded);
     }
 
 #pragma endregion

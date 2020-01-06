@@ -58,19 +58,9 @@ namespace finapi
 {
 namespace models
 {
-    template<typename _Model, int _Count>
-    struct FinFields
-    {
-        static c_uint            count = _Count;
-        static const std::string fields[_Count];
-    };
 
-/* ------------ MODEL FIELD DEFINITIONS ------------ */
-    #define EodAdjFields    FinFields<EodAdj,    9>
-    #define CompanyFields   FinFields<Company,   5>
-    #define DataTagFields   FinFields<DataTag,   9>
-    #define StatementFields FinFields<Statement, 8>
-/* ------------------------------------------------- */
+    template<typename _Model>
+    bool greater_than(const _Model& model1, const _Model& model2, const std::string& field);
 
     /**
      * @brief Cleans a given list by calling the destructor on each object.

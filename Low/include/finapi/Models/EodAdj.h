@@ -13,6 +13,7 @@
 #pragma once
 
 #include "../Execution/ExSystemStructs.h"
+#include "Fields.h"
 #include "TimeStamp.h"
 
 namespace finapi
@@ -21,15 +22,15 @@ namespace models
 {
     struct EodAdj
     {
-        TimeStamp date;
-        float openPrice;
-        float high;      
-        float low;       
-        float close;     
-        float adjClose;  
-        float volume;    
-        float divAmount; 
-        float splitCo;   
+        Field<TimeStamp> date;
+        Field<float> openPrice;
+        Field<float> high;      
+        Field<float> low;       
+        Field<float> close;     
+        Field<float> adjClose;  
+        Field<float> volume;    
+        Field<float> divAmount; 
+        Field<float> splitCo;
 
         static DataModelType model_type();
     };

@@ -6,22 +6,40 @@ namespace finapi
 {
 namespace Cloud
 {
-    struct File : public StreamCheck
+    class File : public FinStream
     {
-        Status status;
-        c_uint filesize;
-        char*  buffer;
+        friend class FileFriend;
 
-        File(Status s = EMPTY);
+        uint iterator, fsize;
 
-        File(c_uint size);
+        Status _status;
+        char*  _buffer;
 
-        ReadStatus read(void* ptr, c_uint size);
+    public:
+        File();
+        File(const char* filename, const char* address);
+        File(const char* filename, Cloud::Address address);
+
+        ReadStatus read(char* ptr, c_uint size) override;
+        void       close();
+
+        constexpr Status status()   const;
+        constexpr uint   filesize() const;
+        constexpr uint   position() const;
 
         ~File();
-    
-    private:
-        unsigned int iterator;
+    };
+
+    class FileFriend : public FinStream
+    {
+        File* const _file;
+
+    public:
+        FileFriend(File& file);
+
+        ReadStatus read(char* ptr, c_uint size) override;
+
+        const bool good() const override;
     };
 }
 }
