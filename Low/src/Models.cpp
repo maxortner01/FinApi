@@ -23,31 +23,49 @@ namespace finapi
 {
 namespace models
 {
-#pragma region BUFFERSTRUCT_H
 
-#pragma region SECTION_FIELDS
+#pragma region FIELDS_H
 
     template<>
-    const std::string FinFields<EodAdj, 9>::fields[9] = {
+    c_uint FinFields<EodAdj>::count = 9;
+    template<>
+    const std::string FinFields<EodAdj>::fields[9] = {
         "Date", "Open", "High", "Low", "Close", "AdjClose", "Volume", "DivAmount", "SplitCo"
     };
 
     template<>
-    const std::string FinFields<Company, 5>::fields[5] = {
+    c_uint FinFields<Company>::count = 5;
+    template<>
+    const std::string FinFields<Company>::fields[5] = {
         "cik", "id", "lei", "name", "ticker"
     };
 
     template<>
-    const std::string FinFields<DataTag, 9>::fields[9] = {
+    c_uint FinFields<DataTag>::count = 9;
+    template<>
+    const std::string FinFields<DataTag>::fields[9] = {
         "balance", "factor", "id", "name", "parent", "tag", "unit", "sequence", "value"
     };
 
     template<>
-    const std::string FinFields<Statement, 8>::fields[8] = {
+    c_uint FinFields<Statement>::count = 8;
+    template<>
+    const std::string FinFields<Statement>::fields[8] = {
         "end_date", "filing_date", "fiscal_period", "id", "start_date", "statement_code", "type", "fiscal_year"
     };
 
-#pragma endregion SECTION_FIELDS
+
+    template<typename _Model>
+    bool greater_than(const _Model& model1, const _Model& model2, const std::string& field)
+    {
+        for (int i = 0; i < FinFields<_Model>::count; i++)
+            if (FinFields<_Model>::fields[i] == field)
+                return get_field<float>(*model1) > get_field<float>(*model2);
+    }
+
+#pragma endregion
+
+#pragma region BUFFERSTRUCT_H
 
 namespace filemethods
 {
@@ -200,20 +218,16 @@ namespace filemethods
 
         EodAdj* newEod = new EodAdj;
 
-        while(filemethods::read(file, &newEod->date))
+        while(filemethods::read(file, newEod->date.ptr()))
         {
             // Field count specific to this data type
-            const unsigned int FIELD_COUNT = 8;
+            const unsigned int FIELD_COUNT = FinFields<EodAdj>::count - 1;
 
-            float* float_iter = &newEod->openPrice;
+            Field<float>* float_iter = &newEod->openPrice;
             
             for (int j = 0; j < FIELD_COUNT; j++)
-            {
-                // Allocate a character buffer, and copy over
-                // data from file into the buffer
-                filemethods::read(file, float_iter + j);
-            }
-            newEod->display();
+                filemethods::read(file, (float_iter + j)->ptr());
+                
             data.push_back(newEod);
             newEod = new EodAdj;
         }
@@ -225,9 +239,9 @@ namespace filemethods
      */
 
     /* METHODS */
-
     bool EodAdj::greater_than(const EodAdj& rhs, std::string field)
     {
+        /*
         if (field == "Open")
             return openPrice > rhs.openPrice;
         else if (field == "High")
@@ -245,11 +259,12 @@ namespace filemethods
         else if (field == "SplitCo")
             return splitCo > rhs.splitCo;
         else if (field == "Date")
-            return date > rhs.date;
+            return date > rhs.date; */
     }
 
     bool EodAdj::less_than(const EodAdj& rhs, std::string field)
     {
+        /*
         if (field == "Open")
             return openPrice < rhs.openPrice;
         else if (field == "High")
@@ -267,20 +282,20 @@ namespace filemethods
         else if (field == "SplitCo")
             return splitCo < rhs.splitCo;
         else if (field == "Date")
-            return date < rhs.date;
+            return date < rhs.date; */
     }
 
     void EodAdj::display()
     {
-        std::cout << "\nDate=\t"   << date.month << "/" << date.day << "/" << date.year
-                  << "\nOpen=\t"   << openPrice
-                  << "\nHigh=\t"   << high
-                  << "\nLow=\t"    << low
-                  << "\nClose=\t"  << close 
-                  << "\nadjCl=\t"  << adjClose
-                  << "\nvolume=\t" << volume
-                  << "\ndivAm=\t"  << divAmount
-                  << "\nSplit=\t"  << splitCo << std::endl;
+        std::cout << "\nDate=\t"   << date.value.month << "/" << date.value.day << "/" << date.value.year
+                  << "\nOpen=\t"   << openPrice.value
+                  << "\nHigh=\t"   << high.value
+                  << "\nLow=\t"    << low.value
+                  << "\nClose=\t"  << close.value
+                  << "\nadjCl=\t"  << adjClose.value
+                  << "\nvolume=\t" << volume.value
+                  << "\ndivAm=\t"  << divAmount.value
+                  << "\nSplit=\t"  << splitCo.value << std::endl; 
     }
 
     /**

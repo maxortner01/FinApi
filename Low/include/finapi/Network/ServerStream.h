@@ -19,9 +19,8 @@ namespace finapi
 {
 namespace Cloud
 {
-    class ServerStream : network::object, public StreamCheck
+    class ServerStream : network::object, public FinStream
     {
-        bool         _ok;
         const char*  fname;
         unsigned int it;
         unsigned int filesize;
@@ -30,7 +29,7 @@ namespace Cloud
         ServerStream(const char* filename, const char* address);
         ServerStream(const char* filename, Cloud::Address address);
 
-        ReadStatus read(char* dest, c_uint size);
+        ReadStatus read(char* dest, uint size) override;
 
         void seek(c_uint bytes);
     };

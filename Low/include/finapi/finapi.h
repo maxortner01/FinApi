@@ -18,10 +18,6 @@
 
 #pragma once
 
-#define assert(expr) if (!(expr)) {\
-    printf("Assertion failed in file %s on expression\n\n%s\n\non line %d\n", __FILE__, #expr, __LINE__);\
-    exit(1); }
-
 #pragma region Namespace_Documentation
 
 /**
@@ -84,6 +80,7 @@ namespace finapi::execution::live {}
 #include "Models/BufferStruct.h"
 #include "Models/ModelComparator.h"
 #include "Models/TimeStamp.h"
+#include "Models/Fields.h"
 
 /*         Modelers         */
 #include "Modelers/FinDataFrame.h"

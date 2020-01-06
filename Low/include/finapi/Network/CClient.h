@@ -71,21 +71,6 @@ namespace _ADDR
         LOGIN_FAIL
     };
 
-    class StreamCheck
-    {
-        bool _ok;
-
-    protected:
-        void set_ok(bool value) { _ok = value; }
-
-    public:
-        StreamCheck() : _ok(false)
-        {   }
-
-        const bool ok() const { return _ok; }
-        explicit operator bool() const { return ok(); }
-    };
-
     struct ReadStatus
     {
         ReadStatus(bool g = true) :
@@ -96,6 +81,28 @@ namespace _ADDR
 
     private:
         bool _good;
+    };
+
+    /**
+     * @brief Simple class that keeps track of the validity of a stream. 
+     * 
+     * By default, the stream is not valid.
+     */
+    class FinStream
+    {
+        bool _ok;
+
+    protected:
+        void set_ok(bool value) { _ok = value; }
+
+    public:
+        FinStream() : _ok(false)
+        {   }
+
+        virtual ReadStatus read(char* buffer, c_uint size) = 0;
+
+        virtual const bool good() const { return _ok; }
+        explicit operator  bool() const { return good(); }
     };
 
     /**
@@ -146,8 +153,8 @@ namespace _ADDR
      */
     void request_file(const char* filename, const int i, const int filesize, char* buffer, const char* address);
     
-    void get_file(const char* filename, const char* address, File*& file, bool threaded = true);
+    Status get_file(const char* filename, const char* address, char*& buffer, uint* fsize, bool threaded = true);
 
-    void get_file(const char* filename, Address address, File*& file, bool threaded = true);
+    Status get_file(const char* filename, Address address, char*& buffer, uint* fsize, bool threaded = true);
 }
 }
