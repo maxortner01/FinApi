@@ -414,6 +414,9 @@ namespace Cloud
         for (int i = 0; stream.read(buffer + (_FIN_BUFFER_SIZE * i), _FIN_BUFFER_SIZE).good(););
         std::cout << "after\n";
         time_point(stop);
+        if (!stream.good())
+            return DNE;
+        return OK;
     }
 
     Status get_file(const char* filename, Address address, char*& buffer, uint* fsize)

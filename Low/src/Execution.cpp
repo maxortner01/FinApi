@@ -418,31 +418,43 @@ namespace backtest
     template<typename _DataModel, typename _Stream>
     bool FinApiHandler<_DataModel, _Stream>::get_next_model(_DataModel*& data_model, std::string symbol)
     {
-        typename std::unordered_map<std::string, modeler::FinDataFrame<_DataModel, _Stream>* >::const_iterator find = symbol_data.find(symbol);
-        if (find == symbol_data.end())
-            return false;
-        if (symbol_data[symbol]->get_next_model(data_model))
-            return true;
-        else
-            return false;
+        if (!in_symbol_data(symbol)) return false;
+        if (symbol_data[symbol]->get_next_model(data_model)) return true;
+        else return false;
     }
+
     /**
-     * @brief Creates a connection object to the desired symbol file
+     * @brief Checks whether a symbol is in the symbol data map
      * 
-     * @param symbol : identifier
-     * @return true  : connection was successful
-     * @return false : connection was not successful
+     * @tparam _DataModel :
+     * @tparam _Stream    :
+     * @param symbol      :
+     * @return true       :
+     * @return false      :
      */
     template<typename _DataModel, typename _Stream>
-    bool FinApiHandler<_DataModel, _Stream>::get_connection(std::string symbol, std::ifstream& fileConn)
+    bool FinApiHandler<_DataModel, _Stream>::in_symbol_data(std::string symbol)
     {
-        // CHECK IF YEAR IS IN DATA BASE, return false if not
-        std::string connString(get_binary_file_dir(model_id, symbol, std::to_string(_working_year)));
-        fileConn.open(connString);
-        if (fileConn.good())
-            return true;
-        else
-            return false;
+        typename std::unordered_map<std::string, modeler::FinDataFrame<_DataModel, _Stream>* >::const_iterator find = symbol_data.find(symbol);
+        if (find == symbol_data.end()) return false;
+        else return true;
+    }
+
+    /**
+     * @brief Checks whether a symbol is in the symbol data map
+     * 
+     * @tparam _DataModel 
+     * @tparam _Stream 
+     * @param symbol 
+     * @return true 
+     * @return false 
+     */
+    template<typename _DataModel, typename _Stream>
+    bool FinApiHandler<_DataModel, _Stream>::in_latest_data(std::string symbol)
+    {
+        typename std::unordered_map<std::string, _DataModel*>::const_iterator find = latest_symbol_data.find(symbol);
+        if (find == latest_symbol_data.end()) return false;
+        else return true;
     }
 
     /**
@@ -452,9 +464,10 @@ namespace backtest
      * @return FinDataFrame<_DataModel, _Stream>* : pointer to allocated data frame
      */
     template<typename _DataModel, typename _Stream>
-    modeler::FinDataFrame<_DataModel, _Stream>* FinApiHandler<_DataModel, _Stream>::get_symbol_data(std::string symbol)
+    modeler::FinDataFrame<_DataModel, _Stream>* FinApiHandler<_DataModel, _Stream>::download_symbol_data(std::string symbol)
     {
-        std::string connString(get_binary_file_dir(model_id, symbol, std::to_string(_working_year)));
+        std::string connString(data_dir + get_binary_file_dir(model_id, symbol, std::to_string(_working_year)));
+        // TO DO: WRITE THIS TO ACCOMODATE IFSTREAM
         _Stream inFile(connString.c_str(), Cloud::LocalServer);
         modeler::FinDataFrame<_DataModel, _Stream>* newDataFrame = nullptr;
         
@@ -483,8 +496,7 @@ namespace backtest
     bool FinApiHandler<_DataModel, _Stream>::get_latest_symbol_data(_DataModel*& data_model, std::string symbol)
     { 
         typename std::unordered_map<std::string, _DataModel*>::const_iterator find = latest_symbol_data.find(symbol);
-        if (find == latest_symbol_data.end())
-            return false;
+        if (!in_latest_data(symbol)) return false;
         else
         {
             data_model = latest_symbol_data[symbol];

@@ -58,9 +58,11 @@ namespace backtest
 
         bool get_next_model(_DataModel*&, std::string);
 
-        bool get_connection(std::string, std::ifstream&);
+        bool in_symbol_data(std::string);
 
-        modeler::FinDataFrame<_DataModel, _Stream>* get_symbol_data(std::string);
+        bool in_latest_data(std::string);
+
+        modeler::FinDataFrame<_DataModel, _Stream>* download_symbol_data(std::string);
 
     public:
 
