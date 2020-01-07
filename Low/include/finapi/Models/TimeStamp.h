@@ -36,11 +36,11 @@ namespace models
 
         TimeStamp(const TimeStamp&);
 
-        const bool operator == (TimeStamp const &);
+        bool operator == (const TimeStamp &) const;
 
-        const bool operator > (TimeStamp const &);       
-
-        const bool operator < (TimeStamp const &);
+        bool operator > (const TimeStamp &) const;       
+        
+        bool operator < (const TimeStamp &) const;
     };
 }
 }

@@ -232,22 +232,25 @@ namespace Cloud
 
     void File::close()
     {
-        std::free(_buffer);
-        _buffer = nullptr;
-        set_ok(false);
+        if (good())
+        {
+            std::free(_buffer);
+            _buffer = nullptr;
+            set_ok(false);
+        }
     }
 
-    constexpr Status File::status() const
+    const Status File::status() const
     {
         return _status;
     }
 
-    constexpr uint File::filesize() const 
+    const uint File::filesize() const 
     {
         return fsize;
     }
 
-    constexpr uint File::position() const
+    const uint File::position() const
     {
         return iterator;
     }
@@ -285,7 +288,7 @@ namespace Cloud
         fname(filename), fsize(0), it(0)
     {
         _socket = network::connect_socket( address );
-
+        assert(_socket > 0);
         if (make_request("LOGIN ADMIN ADMIN123", _socket) == "OK")
             set_ok(true);
 

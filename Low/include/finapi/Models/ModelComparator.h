@@ -19,14 +19,16 @@ namespace finapi
 namespace models
 {
     /**
-     * @brief Used to compare two models given a desired field
+     * @brief Used to compare the data fields of two models
+     * 
+     *        NOTE: field_to_compare must be initialized before 
+     *              methods can be used.
      * 
      */
     template<typename DataModel>
     class ModelComparator
     {
     public:
-
         static std::string field_to_compare;
 
         static bool ascending;

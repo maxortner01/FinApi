@@ -212,7 +212,7 @@ namespace filemethods
 		
         // Read the magic number
 		filemethods::read(file, &magic_number);
-
+         
         // Clean the list and reserve memory for the alloted amount of objects
         clean_list(data);
 
@@ -239,63 +239,61 @@ namespace filemethods
      */
 
     /* METHODS */
-    bool EodAdj::greater_than(const EodAdj& rhs, std::string field)
+    bool greater_than(const EodAdj& lhs, const EodAdj& rhs, std::string field)
     {
-        /*
         if (field == "Open")
-            return openPrice > rhs.openPrice;
+            return lhs.openPrice() > rhs.openPrice();
         else if (field == "High")
-            return high > rhs.high;
+            return lhs.high() > rhs.high();
         else if (field == "Low")
-            return low > rhs.low;
+            return lhs.low() > rhs.low();
         else if (field == "Close")
-            return close > rhs.close;
+            return lhs.close() > rhs.close();
         else if (field == "AdjClose")
-            return adjClose > rhs.adjClose;
+            return lhs.adjClose() > rhs.adjClose();
         else if (field == "Volume")
-            return volume > rhs.volume;
+            return lhs.volume() > rhs.volume();
         else if (field == "DivAmount")
-            return divAmount > rhs.divAmount;
+            return lhs.divAmount() > rhs.divAmount();
         else if (field == "SplitCo")
-            return splitCo > rhs.splitCo;
+            return lhs.splitCo() > rhs.splitCo();
         else if (field == "Date")
-            return date > rhs.date; */
+            return lhs.date() > rhs.date(); 
     }
 
-    bool EodAdj::less_than(const EodAdj& rhs, std::string field)
+    bool less_than(const EodAdj& lhs, const EodAdj& rhs, std::string field) 
     {
-        /*
         if (field == "Open")
-            return openPrice < rhs.openPrice;
+            return lhs.openPrice() < rhs.openPrice();
         else if (field == "High")
-            return high < rhs.high;
+            return lhs.high() < rhs.high();
         else if (field == "Low")
-            return low < rhs.low;
+            return lhs.low() < rhs.low();
         else if (field == "Close")
-            return close < rhs.close;
+            return lhs.close() < rhs.close();
         else if (field == "AdjClose")
-            return adjClose < rhs.adjClose;
+            return lhs.adjClose() < rhs.adjClose();
         else if (field == "Volume")
-            return volume < rhs.volume;
+            return lhs.volume() < rhs.volume();
         else if (field == "DivAmount")
-            return divAmount < rhs.divAmount;
+            return lhs.divAmount() < rhs.divAmount();
         else if (field == "SplitCo")
-            return splitCo < rhs.splitCo;
+            return lhs.splitCo() < rhs.splitCo();
         else if (field == "Date")
-            return date < rhs.date; */
+            return lhs.date() < rhs.date(); 
     }
 
-    void EodAdj::display()
+    void display_model(const EodAdj& obj)
     {
-        std::cout << "\nDate=\t"   << date.value.month << "/" << date.value.day << "/" << date.value.year
-                  << "\nOpen=\t"   << openPrice.value
-                  << "\nHigh=\t"   << high.value
-                  << "\nLow=\t"    << low.value
-                  << "\nClose=\t"  << close.value
-                  << "\nadjCl=\t"  << adjClose.value
-                  << "\nvolume=\t" << volume.value
-                  << "\ndivAm=\t"  << divAmount.value
-                  << "\nSplit=\t"  << splitCo.value << std::endl; 
+        std::cout << "\nDate=\t"   << obj.date().month << "/" << obj.date().day << "/" << obj.date().year
+                  << "\nOpen=\t"   << obj.openPrice()
+                  << "\nHigh=\t"   << obj.high()
+                  << "\nLow=\t"    << obj.low()
+                  << "\nClose=\t"  << obj.close()
+                  << "\nadjCl=\t"  << obj.adjClose()
+                  << "\nvolume=\t" << obj.volume()
+                  << "\ndivAm=\t"  << obj.divAmount()
+                  << "\nSplit=\t"  << obj.splitCo() << std::endl; 
     }
 
     /**
@@ -331,18 +329,18 @@ namespace filemethods
      *        NOTE: Static members ascending and field_to_compare must be initialized 
      * 
      * @tparam DataModel :
-     * @param lhs          :
-     * @param rhs          : 
-     * @return true        : 
-     * @return false       : 
+     * @param lhs        :
+     * @param rhs        : 
+     * @return true      : 
+     * @return false     : 
      */
     template<typename DataModel>
     bool ModelComparator<DataModel>::compare(DataModel lhs, DataModel rhs)
     {
         if (ascending)
-            return lhs.greater_than(rhs, field_to_compare);
+            return less_than(lhs, rhs, field_to_compare);
         else
-            return lhs.less_than(rhs, field_to_compare);
+            return greater_than(lhs, rhs, field_to_compare);
     } 
 
     /**
@@ -350,18 +348,18 @@ namespace filemethods
      *        NOTE: Static members ascending and field_to_compare must be initialized 
      * 
      * @tparam DataModel :
-     * @param lhs          :
-     * @param rhs          : 
-     * @return true        : 
-     * @return false       : 
+     * @param lhs        :
+     * @param rhs        : 
+     * @return true      : 
+     * @return false     : 
      */
     template<typename DataModel>
     bool ModelComparator<DataModel>::compare_ptr(DataModel* lhs, DataModel* rhs)
     {
         if (ascending)
-            return lhs->less_than(*rhs, field_to_compare);
+            return less_than(*lhs, *rhs, field_to_compare);
         else
-            return lhs->greater_than(*rhs, field_to_compare);
+            return greater_than(*lhs, *rhs, field_to_compare);
     } 
 
 #pragma endregion
@@ -385,10 +383,10 @@ namespace filemethods
 
     /* OPERATOR OVERLOADS */
 
-    const bool TimeStamp::operator == (TimeStamp const &rhs)
+    bool TimeStamp::operator == (const TimeStamp &rhs) const 
         { return (year == rhs.year) && (month == rhs.month) && (day == rhs.day); }
 
-    const bool TimeStamp::operator > (TimeStamp const &rhs)
+    bool TimeStamp::operator > (const TimeStamp &rhs) const 
     {
         if (year > rhs.year)
             return true;
@@ -404,7 +402,7 @@ namespace filemethods
             return false;           
     }
 
-    const bool TimeStamp::operator < (TimeStamp const &rhs)
+    bool TimeStamp::operator < (const TimeStamp &rhs) const
     {
         if (year < rhs.year)
             return true;
@@ -427,5 +425,148 @@ namespace filemethods
     TEMP_TYPES(Statement*&           );
     TEMP_TYPES(std::vector<EodAdj*>& );
     TEMP_TYPES(std::vector<DataTag*>&);
+}
+namespace modeler
+{
+
+#pragma region FIN_DATA_FRAME_H
+
+    template class FinDataFrame<models::EodAdj, Cloud::File>;
+    template class FinDataFrame<models::EodAdj, std::ifstream>; 
+
+    /* CONSTRUCTORS */
+
+    /**
+     * @brief Construct a new Fin Data Frame< Model Struct,  Conn Type>:: Fin Data Frame object
+     * 
+     * @tparam _DataModel :
+     * @tparam _Stream    :
+     * @param connection : data stream
+     */
+    template<typename _DataModel, typename _Stream>
+    FinDataFrame<_DataModel, _Stream>::FinDataFrame(_Stream& connection)
+    {
+        deserialize(data, connection);
+        it = data.begin();
+        connection.close();             
+    }
+
+    /* DESTRUCTOR */
+
+    /**
+     * @brief Destroy the Fin Data Frame< Model Struct,  Conn Type>:: Fin Data Frame object
+     * 
+     * @tparam _DataModel :
+     * @tparam _Stream    :
+     */
+    template<typename _DataModel, typename _Stream>
+    FinDataFrame<_DataModel, _Stream>::~FinDataFrame()
+        { clean_list(data); }
+
+    /* METHODS */
+
+    /**
+     * @brief Iterates through the data return a pointer to the current data model
+     *        until the end of the data is reached
+     * 
+     * @tparam _DataModel :
+     * @tparam _Stream    :
+     * @param dat        : pointer that will be assigned the location of data struct
+     * @return true      : data returned
+     * @return false     : end of data reached
+     */
+    template<typename _DataModel, typename _Stream>
+    bool FinDataFrame<_DataModel, _Stream>::get_next_model(_DataModel*& dat)
+    {
+        if (it == data.end())
+        {
+            it = data.begin();
+            return false;
+        }
+
+        dat = (*it);
+        it++;
+
+        return true;
+    }
+
+    /**
+     * @brief Sorts the data by a specified field
+     * 
+     * @tparam _DataModel :
+     * @tparam _Stream    : 
+     * @param field      : field to sort by
+     * @param ascd       : sort direction, true - ascending, false - descending
+     */
+    template<typename _DataModel, typename _Stream>
+    void FinDataFrame<_DataModel, _Stream>::sort_data(std::string field, bool ascd)
+    { 
+        // set comparator variables
+        //models::ModelComparator<_DataModel> comparator;
+        models::ModelComparator<_DataModel>::field_to_compare = field;
+        models::ModelComparator<_DataModel>::ascending = ascd;
+        sort(data.begin(), data.end(), &models::ModelComparator<_DataModel>::compare_ptr);
+    }
+
+    /**
+     * @brief Append data from another stream to data vector
+     *        NOTE: Data may need to be reordered after data is appended
+     * 
+     * @tparam _DataModel :
+     * @tparam _Stream    :
+     * @param connection : data _stream
+     */
+    template<typename _DataModel, typename _Stream>
+    void FinDataFrame<_DataModel, _Stream>::append(_Stream*& connection)
+    { 
+        // deserialize new connection
+        std::vector<_DataModel*> newData;
+        deserialize(newData, *connection);
+        
+        for (int i = 0; i < newData.size(); i++)
+            data.push_back(newData[i]);
+
+        it = data.begin();
+        if (connection)
+            delete connection;
+    }
+
+    /**
+     * @brief Print the first ten structs to the terminal
+     * 
+     * @tparam _DataModel 
+     * @tparam _Stream 
+     */
+    template<typename _DataModel, typename _Stream>
+    void FinDataFrame<_DataModel, _Stream>::display_head()
+    {
+        for (int i = 0; i < 10; i++)
+            models::display_model(*data[i]);
+    }
+
+    /**
+     * @brief Print the last ten structs to the terminal
+     * 
+     * @tparam _DataModel 
+     * @tparam _Stream 
+     */
+    template<typename _DataModel, typename _Stream>
+    void FinDataFrame<_DataModel, _Stream>::display_tail()
+    {
+        for (int i = data.size() - 10; i < data.size(); i++)
+            models::display_model(*data[i]);
+    }
+
+    /**
+     * @brief Returns the DataModelType Enum associated with data
+     * 
+     * @tparam _DataModel 
+     * @tparam _Stream 
+     */
+    template<typename _DataModel, typename _Stream>
+    DataModelType FinDataFrame<_DataModel, _Stream>::get_model_type()
+        { return data[0]->model_type(); }
+
+#pragma endregion
 }
 }
