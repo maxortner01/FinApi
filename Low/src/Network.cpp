@@ -206,12 +206,12 @@ namespace Cloud
 #pragma region FILE
 
     File::File() :
-        iterator(0), fsize(0), _status(EMPTY), _buffer(nullptr)
+        fsize(0), _buffer(nullptr)
     {   }
 
-    File::File(const char* filename, const char* address) :
-        _status( get_file(filename, address, _buffer, &fsize) ), iterator(0)
+    File::File(const char* filename, const char* address)
     {   
+        _status = get_file(filename, address, _buffer, &fsize);
         if (_status == OK) set_ok(true);
     }
 
@@ -221,11 +221,11 @@ namespace Cloud
 
     ReadStatus File::read(char* ptr, c_uint size)
     {
-        if (iterator >= fsize)
+        if (it >= fsize)
             return ReadStatus(false);
 
-        std::memcpy(ptr, _buffer + iterator, size);
-        iterator += size;
+        std::memcpy(ptr, _buffer + it, size);
+        it += size;
 
         return ReadStatus();
     }
@@ -245,14 +245,9 @@ namespace Cloud
         return _status;
     }
 
-    const uint File::filesize() const 
+    c_uint File::filesize() const 
     {
         return fsize;
-    }
-
-    const uint File::position() const
-    {
-        return iterator;
     }
 
     File::~File()
@@ -289,11 +284,18 @@ namespace Cloud
     {
         _socket = network::connect_socket( address );
         assert(_socket > 0);
+
         if (make_request("LOGIN ADMIN ADMIN123", _socket) == "OK")
             set_ok(true);
+        else
+        {
+            _status = LOGIN_FAIL;
+            return;
+        }
 
         if (make_request(network::str_concat("exists ", filename).c_str(), _socket) == "F")
         {
+            _status = DNE;
             set_ok(false);
             return;
         }
@@ -312,8 +314,7 @@ namespace Cloud
 
     ReadStatus ServerStream::read(char* dest, uint size)
     {
-        if (!good())
-            return ReadStatus(false);
+        if (!good()) return ReadStatus(false);
 
         // If the end of the block is after the end of the file,
         // change the size to accomidate for it
@@ -336,11 +337,6 @@ namespace Cloud
         it += size;
 
         return ReadStatus();
-    }
-
-    void ServerStream::seek(c_uint bytes)
-    {
-        it = bytes;
     }
 
 #pragma endregion
@@ -410,10 +406,12 @@ namespace Cloud
 
         buffer = (char*)std::malloc(stream.filesize());
         std::memset(buffer, 0, stream.filesize());
-        std::cout << "before\n";
+
         for (int i = 0; stream.read(buffer + (_FIN_BUFFER_SIZE * i), _FIN_BUFFER_SIZE).good(););
-        std::cout << "after\n";
+        
         time_point(stop);
+
+        return stream.status();
     }
 
     Status get_file(const char* filename, Address address, char*& buffer, uint* fsize)

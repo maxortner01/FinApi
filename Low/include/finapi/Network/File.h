@@ -10,9 +10,7 @@ namespace Cloud
     {
         friend class FileFriend;
 
-        uint iterator, fsize;
-
-        Status _status;
+        uint   fsize;
         char*  _buffer;
 
     public:
@@ -24,8 +22,7 @@ namespace Cloud
         void       close();
 
         const Status status()   const;
-        const uint   filesize() const;
-        const uint   position() const;
+        c_uint       filesize() const;
 
         ~File();
     };
