@@ -457,9 +457,10 @@ namespace backtest
         std::string connString(get_binary_file_dir(model_id, symbol, std::to_string(_working_year)));
         _Stream inFile(connString.c_str(), Cloud::LocalServer);
         modeler::FinDataFrame<_DataModel, _Stream>* newDataFrame = nullptr;
-        std::cout << connString << std::endl;
+        
         if (inFile.good())
-        {               
+        {    
+            std::cout << connString << std::endl;           
             newDataFrame = new modeler::FinDataFrame<_DataModel, _Stream>(inFile);
             newDataFrame->sort_data("Date");
         }   

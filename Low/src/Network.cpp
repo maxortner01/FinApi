@@ -312,11 +312,12 @@ namespace Cloud
 
     ReadStatus ServerStream::read(char* dest, uint size)
     {
-        assert(good());
+        if (!good())
+            return ReadStatus(false);
 
         // If the end of the block is after the end of the file,
         // change the size to accomidate for it
-        if (it + size > fsize) size = fsize - (it + size);
+        if (it + size > fsize) size = fsize - it;
 
         // If the iterator is at the end of the file return failed read
         if (it >= fsize || size == 0) return ReadStatus(false);
@@ -409,9 +410,9 @@ namespace Cloud
 
         buffer = (char*)std::malloc(stream.filesize());
         std::memset(buffer, 0, stream.filesize());
-
+        std::cout << "before\n";
         for (int i = 0; stream.read(buffer + (_FIN_BUFFER_SIZE * i), _FIN_BUFFER_SIZE).good(););
-
+        std::cout << "after\n";
         time_point(stop);
     }
 
