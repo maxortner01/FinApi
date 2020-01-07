@@ -404,7 +404,7 @@ namespace backtest
         {
             // create connection string
             std::transform(symbol.begin(), symbol.end(), symbol.begin(), ::tolower);
-            data = get_symbol_data(symbol);
+            data = download_symbol_data(symbol);
             // add symbol data to map
             if (data)
                 symbol_data[symbol] = data;                                            
