@@ -239,63 +239,61 @@ namespace filemethods
      */
 
     /* METHODS */
-    bool EodAdj::greater_than(const EodAdj& rhs, std::string field)
+    bool greater_than(const EodAdj& lhs, const EodAdj& rhs, std::string field)
     {
-        /*
         if (field == "Open")
-            return lhs.openPrice > rhs.openPrice;
+            return lhs.openPrice() > rhs.openPrice();
         else if (field == "High")
-            return lhs.high > rhs.high;
+            return lhs.high() > rhs.high();
         else if (field == "Low")
-            return lhs.low > rhs.low;
+            return lhs.low() > rhs.low();
         else if (field == "Close")
-            return lhs.close > rhs.close;
+            return lhs.close() > rhs.close();
         else if (field == "AdjClose")
-            return lhs.adjClose > rhs.adjClose;
+            return lhs.adjClose() > rhs.adjClose();
         else if (field == "Volume")
-            return lhs.volume > rhs.volume;
+            return lhs.volume() > rhs.volume();
         else if (field == "DivAmount")
-            return lhs.divAmount > rhs.divAmount;
+            return lhs.divAmount() > rhs.divAmount();
         else if (field == "SplitCo")
-            return lhs.splitCo > rhs.splitCo;
+            return lhs.splitCo() > rhs.splitCo();
         else if (field == "Date")
-            return date > rhs.date; */
+            return lhs.date() > rhs.date(); 
     }
 
     bool less_than(const EodAdj& lhs, const EodAdj& rhs, std::string field) 
     {
-        /*
         if (field == "Open")
-            return lhs.openPrice < rhs.openPrice;
+            return lhs.openPrice() < rhs.openPrice();
         else if (field == "High")
-            return lhs.high < rhs.high;
+            return lhs.high() < rhs.high();
         else if (field == "Low")
-            return lhs.low < rhs.low;
+            return lhs.low() < rhs.low();
         else if (field == "Close")
-            return lhs.close < rhs.close;
+            return lhs.close() < rhs.close();
         else if (field == "AdjClose")
-            return lhs.adjClose < rhs.adjClose;
+            return lhs.adjClose() < rhs.adjClose();
         else if (field == "Volume")
-            return lhs.volume < rhs.volume;
+            return lhs.volume() < rhs.volume();
         else if (field == "DivAmount")
-            return lhs.divAmount < rhs.divAmount;
+            return lhs.divAmount() < rhs.divAmount();
         else if (field == "SplitCo")
-            return lhs.splitCo < rhs.splitCo;
+            return lhs.splitCo() < rhs.splitCo();
         else if (field == "Date")
-            return date < rhs.date; */
+            return lhs.date() < rhs.date(); 
     }
 
     void display_model(const EodAdj& obj)
     {
-        std::cout << "\nDate=\t"   << date.value.month << "/" << date.value.day << "/" << date.value.year
-                  << "\nOpen=\t"   << openPrice.value
-                  << "\nHigh=\t"   << high.value
-                  << "\nLow=\t"    << low.value
-                  << "\nClose=\t"  << close.value
-                  << "\nadjCl=\t"  << adjClose.value
-                  << "\nvolume=\t" << volume.value
-                  << "\ndivAm=\t"  << divAmount.value
-                  << "\nSplit=\t"  << splitCo.value << std::endl; 
+        std::cout << "\nDate=\t"   << obj.date().month << "/" << obj.date().day << "/" << obj.date().year
+                  << "\nOpen=\t"   << obj.openPrice()
+                  << "\nHigh=\t"   << obj.high()
+                  << "\nLow=\t"    << obj.low()
+                  << "\nClose=\t"  << obj.close()
+                  << "\nadjCl=\t"  << obj.adjClose()
+                  << "\nvolume=\t" << obj.volume()
+                  << "\ndivAm=\t"  << obj.divAmount()
+                  << "\nSplit=\t"  << obj.splitCo() << std::endl; 
     }
 
     /**
@@ -433,7 +431,7 @@ namespace modeler
 
 #pragma region FIN_DATA_FRAME_H
 
-    //template class FinDataFrame<models::EodAdj, Cloud::File>;
+    template class FinDataFrame<models::EodAdj, Cloud::File>;
     template class FinDataFrame<models::EodAdj, std::ifstream>; 
 
     /* CONSTRUCTORS */

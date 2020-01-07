@@ -56,13 +56,13 @@ namespace execution
     }
 
     /* Build connection string to access binary files from server */
-
+    //"/home/josh/Desktop/cpp/stock-platform/data/" + 
     std::string get_binary_file_dir(DataModelType model_id, std::string symbol, std::string fileName)
     {
         switch (model_id)
         {
             case EODADJ:
-                return std::string("/home/josh/Desktop/cpp/stock-platform/data/" + get_symbol_directory(model_id) + "/" + symbol + "/" + get_binary_directory(model_id) + "/" + fileName + ".bin");
+                return std::string(get_symbol_directory(model_id) + "/" + symbol + "/" + get_binary_directory(model_id) + "/" + fileName + ".bin");
         }
     }
 
@@ -261,7 +261,7 @@ namespace execution
 
     /* CONSTRUCTORS */
 
-    template class BuyAndHold<backtest::FinApiHandler<models::EodAdj>, models::EodAdj >;
+    template class BuyAndHold<backtest::FinApiHandler<models::EodAdj, Cloud::File>, models::EodAdj >;
 
     template<typename _DataHandler, typename _DataModel>
     BuyAndHold<_DataHandler, _DataModel>::BuyAndHold(SymbolList& s_list, EVENT_QUEUE_PTR events, _DataHandler& eod_d) :
@@ -317,7 +317,7 @@ namespace execution
                     if (!bought[symbol])
                     {
                         // see over loads for model get timestamp
-                        newSignal = new SignalEvent(symbol, data_model->date, "LONG");
+                        newSignal = new SignalEvent(symbol, data_model->date(), "LONG");
                         event_q->push(newSignal);
                         bought[symbol] = true;
                     }
@@ -352,7 +352,7 @@ namespace backtest
      * FIN_API_HANDLER IMPLEMENTATION
      */ 
 
-    template class FinApiHandler<models::EodAdj>;    
+    template class FinApiHandler<models::EodAdj, Cloud::File>;    
 
     /* CONSTRUCTORS */
 
@@ -366,9 +366,9 @@ namespace backtest
      * @param s_list 
      * @param events 
      */
-    template<typename _DataModel>
-    FinApiHandler<_DataModel>::FinApiHandler(int start_year, int end_year, SymbolList s_list, EVENT_QUEUE_PTR events) :
-        DataHandler(), _continue_backtest(true), event_q(events), model_id(_DataModel::model_type()), year_range(start_year, end_year), 
+    template<typename _DataModel, typename _Stream>
+    FinApiHandler<_DataModel, _Stream>::FinApiHandler(std::string d_dir, EVENT_QUEUE_PTR events, SymbolList s_list, int start_year, int end_year) :
+        DataHandler(), event_q(events), _continue_backtest(true), _data_dir(d_dir), model_id(_DataModel::model_type()), year_range(start_year, end_year), 
         all_symbols(s_list), _working_year(start_year) 
     { get_working_year_data(); }
 
@@ -379,22 +379,22 @@ namespace backtest
      *        Deallocate dataframes for each symbol in unordered map
      * 
      */
-    template<typename _DataModel>
-    FinApiHandler<_DataModel>::~FinApiHandler<_DataModel>()
+    template<typename _DataModel, typename _Stream>
+    FinApiHandler<_DataModel, _Stream>::~FinApiHandler()
     {
-        for (std::pair<std::string, modeler::FinDataFrame<_DataModel, std::ifstream>* > element : symbol_data)
+        for (std::pair<std::string, modeler::FinDataFrame<_DataModel, _Stream>* > element : symbol_data)
             delete element.second;        
     }
 
     /* PRIVATE METHODS */
 
-    template<typename _DataModel>
-    void FinApiHandler<_DataModel>::get_working_year_data()
+    template<typename _DataModel, typename _Stream>
+    void FinApiHandler<_DataModel, _Stream>::get_working_year_data()
     {
         std::string symbol;
-        modeler::FinDataFrame<_DataModel, std::ifstream>* data = nullptr;
+        modeler::FinDataFrame<_DataModel, _Stream>* data = nullptr;
 
-        for (std::pair<std::string, modeler::FinDataFrame<_DataModel, std::ifstream>* > element : symbol_data)
+        for (std::pair<std::string, modeler::FinDataFrame<_DataModel, _Stream>* > element : symbol_data)
             delete element.second; 
 
         symbol_data.clear();
@@ -407,10 +407,7 @@ namespace backtest
             data = get_symbol_data(symbol);
             // add symbol data to map
             if (data)
-            {
-                symbol_data[symbol] = data; 
-            }
-                                            
+                symbol_data[symbol] = data;                                            
         }
     }
 
@@ -418,10 +415,10 @@ namespace backtest
      * @brief Returns the latest bar from the data feed. Moves iterator in data frame
      * 
      */
-    template<typename _DataModel>
-    bool FinApiHandler<_DataModel>::get_next_model(_DataModel*& data_model, std::string symbol)
+    template<typename _DataModel, typename _Stream>
+    bool FinApiHandler<_DataModel, _Stream>::get_next_model(_DataModel*& data_model, std::string symbol)
     {
-        typename std::unordered_map<std::string, modeler::FinDataFrame<_DataModel, std::ifstream>* >::const_iterator find = symbol_data.find(symbol);
+        typename std::unordered_map<std::string, modeler::FinDataFrame<_DataModel, _Stream>* >::const_iterator find = symbol_data.find(symbol);
         if (find == symbol_data.end())
             return false;
         if (symbol_data[symbol]->get_next_model(data_model))
@@ -436,8 +433,8 @@ namespace backtest
      * @return true  : connection was successful
      * @return false : connection was not successful
      */
-    template<typename _DataModel>
-    bool FinApiHandler<_DataModel>::get_connection(std::string symbol, std::ifstream& fileConn)
+    template<typename _DataModel, typename _Stream>
+    bool FinApiHandler<_DataModel, _Stream>::get_connection(std::string symbol, std::ifstream& fileConn)
     {
         // CHECK IF YEAR IS IN DATA BASE, return false if not
         std::string connString(get_binary_file_dir(model_id, symbol, std::to_string(_working_year)));
@@ -452,17 +449,18 @@ namespace backtest
      * @brief Creates a FinDataFrame for symbol using _working_year
      * 
      * @param symbol                                  : identifier
-     * @return FinDataFrame<_DataModel, std::ifstream>* : pointer to allocated data frame
+     * @return FinDataFrame<_DataModel, _Stream>* : pointer to allocated data frame
      */
-    template<typename _DataModel>
-    modeler::FinDataFrame<_DataModel, std::ifstream>* FinApiHandler<_DataModel>::get_symbol_data(std::string symbol)
+    template<typename _DataModel, typename _Stream>
+    modeler::FinDataFrame<_DataModel, _Stream>* FinApiHandler<_DataModel, _Stream>::get_symbol_data(std::string symbol)
     {
-        std::ifstream inFile;
-        modeler::FinDataFrame<_DataModel, std::ifstream>* newDataFrame = nullptr;
-        
-        if (get_connection(symbol, inFile))
+        std::string connString(get_binary_file_dir(model_id, symbol, std::to_string(_working_year)));
+        _Stream inFile(connString.c_str(), Cloud::LocalServer);
+        modeler::FinDataFrame<_DataModel, _Stream>* newDataFrame = nullptr;
+        std::cout << connString << std::endl;
+        if (inFile.good())
         {               
-            newDataFrame = new modeler::FinDataFrame<_DataModel, std::ifstream>(inFile);
+            newDataFrame = new modeler::FinDataFrame<_DataModel, _Stream>(inFile);
             newDataFrame->sort_data("Date");
         }   
         return newDataFrame;
@@ -480,8 +478,8 @@ namespace backtest
      * @return true       :
      * @return false      :
      */
-    template<typename _DataModel>
-    bool FinApiHandler<_DataModel>::get_latest_symbol_data(_DataModel*& data_model, std::string symbol)
+    template<typename _DataModel, typename _Stream>
+    bool FinApiHandler<_DataModel, _Stream>::get_latest_symbol_data(_DataModel*& data_model, std::string symbol)
     { 
         typename std::unordered_map<std::string, _DataModel*>::const_iterator find = latest_symbol_data.find(symbol);
         if (find == latest_symbol_data.end())
@@ -498,8 +496,8 @@ namespace backtest
      *        for all symbols in the symbol list
      * 
      */
-    template<typename _DataModel>
-    void FinApiHandler<_DataModel>::update_latest_data()
+    template<typename _DataModel, typename _Stream>
+    void FinApiHandler<_DataModel, _Stream>::update_latest_data()
     {
         bool get_next_year = false;
         MarketEvent* event = nullptr;
@@ -515,7 +513,7 @@ namespace backtest
             // symbol to lower case
             std::transform(symbol.begin(), symbol.end(), symbol.begin(), ::tolower);
             // confirm symbol is in symbol data
-            typename std::unordered_map<std::string, modeler::FinDataFrame<_DataModel, std::ifstream>* >::const_iterator find = symbol_data.find(symbol);
+            typename std::unordered_map<std::string, modeler::FinDataFrame<_DataModel, _Stream>* >::const_iterator find = symbol_data.find(symbol);
             if (find == symbol_data.end())
                 continue;
 
@@ -557,8 +555,8 @@ namespace backtest
      * @brief Displays all data in latest_symbol_data structure
      * 
      */
-    template<typename _DataModel>
-    void FinApiHandler<_DataModel>::display_latest_data()
+    template<typename _DataModel, typename _Stream>
+    void FinApiHandler<_DataModel, _Stream>::display_latest_data()
     {
         for (std::pair<std::string, _DataModel*> element : latest_symbol_data)
         {
@@ -568,8 +566,8 @@ namespace backtest
         }       
     }
     
-    template<typename _DataModel>
-    bool FinApiHandler<_DataModel>::continue_backtest()
+    template<typename _DataModel, typename _Stream>
+    bool FinApiHandler<_DataModel, _Stream>::continue_backtest()
         { return _continue_backtest; }
 
     

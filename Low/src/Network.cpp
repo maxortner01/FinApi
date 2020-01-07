@@ -232,22 +232,25 @@ namespace Cloud
 
     void File::close()
     {
-        std::free(_buffer);
-        _buffer = nullptr;
-        set_ok(false);
+        if (good())
+        {
+            std::free(_buffer);
+            _buffer = nullptr;
+            set_ok(false);
+        }
     }
 
-    constexpr Status File::status() const
+    const Status File::status() const
     {
         return _status;
     }
 
-    constexpr uint File::filesize() const 
+    const uint File::filesize() const 
     {
         return fsize;
     }
 
-    constexpr uint File::position() const
+    const uint File::position() const
     {
         return iterator;
     }
@@ -285,7 +288,7 @@ namespace Cloud
         fname(filename), filesize(0), it(0)
     {
         _socket = network::connect_socket( address );
-
+        assert(_socket > 0);
         if (make_request("LOGIN ADMIN ADMIN123", _socket) == "OK")
             set_ok(true);
 
@@ -411,8 +414,9 @@ namespace Cloud
         unsigned int filesize, chunks;
         make_request(network::str_concat("SZE ", filename).c_str(), sock, (char*)&filesize, sizeof(unsigned int));
         make_request(network::str_concat("CHK ", filename).c_str(), sock, (char*)&chunks,   sizeof(unsigned int));
+        
         *fsize = filesize;
-
+        
         close_connection(sock);
 
         buffer = (char*)std::malloc(filesize);
@@ -435,7 +439,7 @@ namespace Cloud
             delete threads[i];
         }
 
-        *(buffer + filesize) = '\0';
+        //*(buffer + filesize) = '\0';
 
         time_point(stop);
     }

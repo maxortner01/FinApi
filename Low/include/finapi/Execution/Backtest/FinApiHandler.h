@@ -40,9 +40,10 @@ namespace backtest
      *          - working_year       : current year of data in symbol_data
      * 
      */
-    template<typename _DataModel>
+    template<typename _DataModel, typename _Stream>
     class FinApiHandler : public DataHandler
     {
+        std::string _data_dir;
         EVENT_QUEUE_PTR event_q;
         bool _continue_backtest;
         DataModelType model_id;
@@ -50,7 +51,7 @@ namespace backtest
         SymbolList all_symbols;
         unsigned int _working_year; 
         
-        std::unordered_map<std::string, modeler::FinDataFrame<_DataModel, std::ifstream>* > symbol_data;
+        std::unordered_map<std::string, modeler::FinDataFrame<_DataModel, _Stream>* > symbol_data;
         std::unordered_map<std::string, _DataModel*> latest_symbol_data;
 
         void get_working_year_data();
@@ -59,7 +60,7 @@ namespace backtest
 
         bool get_connection(std::string, std::ifstream&);
 
-        modeler::FinDataFrame<_DataModel, std::ifstream>* get_symbol_data(std::string);
+        modeler::FinDataFrame<_DataModel, _Stream>* get_symbol_data(std::string);
 
     public:
 
@@ -67,7 +68,7 @@ namespace backtest
 
         FinApiHandler() { }
 
-        FinApiHandler(int, int, SymbolList, EVENT_QUEUE_PTR);
+        FinApiHandler(std::string, EVENT_QUEUE_PTR, SymbolList, int, int);
  
         /* DESTRUCTOR */
 
@@ -82,7 +83,7 @@ namespace backtest
         void display_latest_data();
 
         bool continue_backtest();
-    };    
+    };   
 
 }
 }

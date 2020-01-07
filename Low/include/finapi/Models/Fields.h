@@ -21,6 +21,11 @@ namespace models
         {
             return &value;
         }
+
+        const T& operator ()() const
+        {
+            return value;
+        }
     };
 
     template<typename _Model>

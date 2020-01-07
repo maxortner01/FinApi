@@ -15,6 +15,7 @@
 #pragma once
 
 #include "./ExSystemStructs.h"
+#include "../Models/TimeStamp.h"
 
 namespace finapi
 {
