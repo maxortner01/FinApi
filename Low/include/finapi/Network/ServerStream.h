@@ -23,13 +23,15 @@ namespace Cloud
     {
         const char*  fname;
         unsigned int it;
-        unsigned int filesize;
+        unsigned int fsize;
 
     public:
         ServerStream(const char* filename, const char* address);
         ServerStream(const char* filename, Cloud::Address address);
 
         ReadStatus read(char* dest, uint size) override;
+
+        c_uint& filesize() const { return fsize; }
 
         void seek(c_uint bytes);
     };

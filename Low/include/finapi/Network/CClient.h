@@ -43,6 +43,8 @@ namespace finapi
 {
 namespace Cloud
 {
+    class ServerStream;
+
 namespace _ADDR
 {
     static const char* addresses[] = {
@@ -151,10 +153,10 @@ namespace _ADDR
      * @param buffer    Location of the buffer to populate       
      * @param address   IP Address of the server
      */
-    void request_file(const char* filename, const int i, const int filesize, char* buffer, const char* address);
-    
-    Status get_file(const char* filename, const char* address, char*& buffer, uint* fsize, bool threaded = true);
+    void request_file(const char* filename, const int i, const int filesize, char* buffer, const char* address, ServerStream& stream);
 
-    Status get_file(const char* filename, Address address, char*& buffer, uint* fsize, bool threaded = true);
+    Status get_file(const char* filename, const char* address, char*& buffer, uint* fsize);
+
+    Status get_file(const char* filename, Address address, char*& buffer, uint* fsize);
 }
 }
