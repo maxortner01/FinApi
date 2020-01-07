@@ -210,7 +210,7 @@ namespace Cloud
     {   }
 
     File::File(const char* filename, const char* address) :
-        _status( get_file(filename, address, _buffer, &fsize, false) ), iterator(0)
+        _status( get_file(filename, address, _buffer, &fsize) ), iterator(0)
     {   
         if (_status == OK) set_ok(true);
     }
@@ -282,7 +282,7 @@ namespace Cloud
 #pragma region SERVER_STREAM_H
 
     ServerStream::ServerStream(const char* filename, const char* address) :
-        fname(filename), filesize(0), it(0)
+        fname(filename), fsize(0), it(0)
     {
         _socket = network::connect_socket( address );
 
@@ -298,7 +298,7 @@ namespace Cloud
         make_request(
             network::str_concat("SZE ", filename).c_str(), 
             _socket,
-            (char*)&filesize,
+            (char*)&fsize,
             sizeof(unsigned int)
         );
     }
@@ -313,10 +313,10 @@ namespace Cloud
 
         // If the end of the block is after the end of the file,
         // change the size to accomidate for it
-        if (it + size > filesize) size = filesize - (it + size);
+        if (it + size > fsize) size = fsize - (it + size);
 
         // If the iterator is at the end of the file return failed read
-        if (it >= filesize || size == 0) return ReadStatus(false);
+        if (it >= fsize || size == 0) return ReadStatus(false);
 
         // Ugly concatenation to make a request to the server with the command:
         // STRM 'filename' 'byte-length'
@@ -382,7 +382,7 @@ namespace Cloud
         return (make_request(network::str_concat("exists ", filename).c_str(), address) == "T");
     }
 
-    void request_file(const char* filename, const int i, const int filesize, char* buffer, const char* address)
+    void request_file(const char* filename, const int i, const int filesize, char* buffer, const char* address, ServerStream& stream)
     {
         static unsigned int read = 0;
 
@@ -392,57 +392,29 @@ namespace Cloud
         if (END_BLOCK > filesize)
             block_size = filesize - (_FIN_BUFFER_SIZE * i);
 
-        Cloud::ServerStream stream(filename, address);
-        stream.seek(i * _FIN_BUFFER_SIZE);
+        //Cloud::ServerStream stream(filename, address);
+        //stream.seek(i * _FIN_BUFFER_SIZE);
         stream.read(buffer + (_FIN_BUFFER_SIZE * i), block_size);
     }
 
-    Status get_file(const char* filename, const char* address, char*& buffer, uint* fsize, bool threaded)
+    Status get_file(const char* filename, const char* address, char*& buffer, uint* fsize)
     {
         time_point(start);
 
-        int sock = network::connect_socket(address);
+        ServerStream stream(filename, address);
+        *fsize = stream.filesize();
 
-        if (sock < 0) return SOCKET_FAIL;
+        buffer = (char*)std::malloc(stream.filesize());
+        std::memset(buffer, 0, stream.filesize());
 
-        if (make_request(network::str_concat("exists ", filename).c_str(), sock) == "F")
-            { close_connection(sock); return DNE; }
-
-        unsigned int filesize, chunks;
-        make_request(network::str_concat("SZE ", filename).c_str(), sock, (char*)&filesize, sizeof(unsigned int));
-        make_request(network::str_concat("CHK ", filename).c_str(), sock, (char*)&chunks,   sizeof(unsigned int));
-        *fsize = filesize;
-
-        close_connection(sock);
-
-        buffer = (char*)std::malloc(filesize);
-        std::memset(buffer, 0, filesize);
-
-        std::vector<std::thread*> threads;
-        threads.reserve(chunks);
-
-        for (int i = 0; i < chunks; i++)
-        {
-            if (threaded)
-                threads.push_back(new std::thread(request_file, filename, i, filesize, buffer, address));
-            else
-                request_file(filename, i, filesize, buffer, address);
-        }
-
-        for (int i = 0; i < threads.size(); i++)
-        {
-            threads[i]->join();
-            delete threads[i];
-        }
-
-        *(buffer + filesize) = '\0';
+        for (int i = 0; stream.read(buffer + (_FIN_BUFFER_SIZE * i), _FIN_BUFFER_SIZE).good(););
 
         time_point(stop);
     }
 
-    Status get_file(const char* filename, Address address, char*& buffer, uint* fsize, bool threaded)
+    Status get_file(const char* filename, Address address, char*& buffer, uint* fsize)
     {
-        return get_file(filename, _ADDR::addresses[address], buffer, fsize, threaded);
+        return get_file(filename, _ADDR::addresses[address], buffer, fsize);
     }
 
 #pragma endregion
