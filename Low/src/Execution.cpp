@@ -404,7 +404,7 @@ namespace backtest
         {
             // create connection string
             std::transform(symbol.begin(), symbol.end(), symbol.begin(), ::tolower);
-            data = get_symbol_data(symbol);
+            data = download_symbol_data(symbol);
             // add symbol data to map
             if (data)
                 symbol_data[symbol] = data;                                            
@@ -466,7 +466,7 @@ namespace backtest
     template<typename _DataModel, typename _Stream>
     modeler::FinDataFrame<_DataModel, _Stream>* FinApiHandler<_DataModel, _Stream>::download_symbol_data(std::string symbol)
     {
-        std::string connString(data_dir + get_binary_file_dir(model_id, symbol, std::to_string(_working_year)));
+        std::string connString(_data_dir + get_binary_file_dir(model_id, symbol, std::to_string(_working_year)));
         // TO DO: WRITE THIS TO ACCOMODATE IFSTREAM
         _Stream inFile(connString.c_str(), Cloud::LocalServer);
         modeler::FinDataFrame<_DataModel, _Stream>* newDataFrame = nullptr;
