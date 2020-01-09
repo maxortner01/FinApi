@@ -280,7 +280,7 @@ namespace Cloud
 #pragma region SERVER_STREAM_H
 
     ServerStream::ServerStream(const char* filename, const char* address) :
-        fname(filename), fsize(0), it(0)
+        fname(filename), fsize(0)
     {
         _socket = network::connect_socket( address );
         assert(_socket > 0);
@@ -407,7 +407,7 @@ namespace Cloud
         buffer = (char*)std::malloc(stream.filesize());
         std::memset(buffer, 0, stream.filesize());
 
-        for (int i = 0; stream.read(buffer + (_FIN_BUFFER_SIZE * i), _FIN_BUFFER_SIZE).good(););
+        for (int i = 0; stream.read(buffer + (_FIN_BUFFER_SIZE * i), _FIN_BUFFER_SIZE).good(); i++);
         
         time_point(stop);
 
