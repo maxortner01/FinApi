@@ -95,13 +95,19 @@ namespace _ADDR
         bool _ok;
 
     protected:
+        uint   it;
+        Status _status;
+
         void set_ok(bool value) { _ok = value; }
 
     public:
-        FinStream() : _ok(false)
+        FinStream() : _ok(false), it(0), _status(EMPTY)
         {   }
 
         virtual ReadStatus read(char* buffer, c_uint size) = 0;
+        
+        void seek(c_uint loc)   { it = loc;  }
+        c_uint position() const { return it; }
 
         virtual const bool good() const { return _ok; }
         explicit operator  bool() const { return good(); }

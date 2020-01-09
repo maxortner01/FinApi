@@ -22,8 +22,8 @@ namespace Cloud
     class ServerStream : network::object, public FinStream
     {
         const char*  fname;
-        unsigned int it;
         unsigned int fsize;
+        Status       _status;
 
     public:
         ServerStream(const char* filename, const char* address);
@@ -31,9 +31,9 @@ namespace Cloud
 
         ReadStatus read(char* dest, uint size) override;
 
-        c_uint& filesize() const { return fsize; }
-
-        void seek(c_uint bytes);
+        c_uint& filesize() const { return fsize;            }
+        bool    exists()   const { return (_status != DNE); }
+        Status  status()   const { return _status;          }
     };
 }
 }
