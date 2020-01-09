@@ -90,6 +90,7 @@ namespace finapi::execution::live {}
 #include "Execution/DataHandler.h"
 #include "Execution/Strategy.h"
 #include "Execution/ExSystemStructs.h"
+#include "Execution/Portfolio.h"
 
 /*        Backtest          */
 #include "Execution/Backtest/FinApiHandler.h"

@@ -432,6 +432,7 @@ namespace modeler
 #pragma region FIN_DATA_FRAME_H
 
     template class FinDataFrame<models::EodAdj, Cloud::File>;
+    template class FinDataFrame<models::EodAdj, Cloud::ServerStream>;
     template class FinDataFrame<models::EodAdj, std::ifstream>; 
 
     /* CONSTRUCTORS */
@@ -448,7 +449,7 @@ namespace modeler
     {
         deserialize(data, connection);
         it = data.begin();
-        connection.close();             
+        //connection.close();             
     }
 
     /* DESTRUCTOR */
