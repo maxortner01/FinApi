@@ -41,12 +41,12 @@ namespace network
     // The magic error that comes from nowhere. I guess this will
     // never be freed
     object::~object()
-        { /* std::free(_addr); */ close_connection(_socket); }
+        { /* std::free(_addr); */ close_connection(_socket); std::cout << "closed\n"; }
 
     mac get_mac_address()
     {
     #ifdef _FIN_WINDOWS
-    
+        return mac();
     #else
         mac r;
         std::memset(r.address, 0, 6 * sizeof(unsigned char));
@@ -103,6 +103,7 @@ namespace network
     int make_socket()
     {
         WSAStart();
+        std::cout << "opened\n";
         return socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     }
 
@@ -380,21 +381,6 @@ namespace Cloud
     bool file_exists(const char* filename, const char* address)
     {
         return (make_request(network::str_concat("exists ", filename).c_str(), address) == "T");
-    }
-
-    void request_file(const char* filename, const int i, const int filesize, char* buffer, const char* address, ServerStream& stream)
-    {
-        static unsigned int read = 0;
-
-        unsigned int block_size = _FIN_BUFFER_SIZE;
-        c_uint END_BLOCK = _FIN_BUFFER_SIZE * (i + 1);
-
-        if (END_BLOCK > filesize)
-            block_size = filesize - (_FIN_BUFFER_SIZE * i);
-
-        //Cloud::ServerStream stream(filename, address);
-        //stream.seek(i * _FIN_BUFFER_SIZE);
-        stream.read(buffer + (_FIN_BUFFER_SIZE * i), block_size);
     }
 
     Status get_file(const char* filename, const char* address, char*& buffer, uint* fsize)
