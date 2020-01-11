@@ -10,7 +10,7 @@
 
 // Macro to forward declare a deserialize function
 #define DES_TYPE(type1, type2)\
-    VOID_TEMP_FUNC(deserialize, type2, type1, type2&)
+    VOID_TEMP_FUNC(deserialize, type2, type1, type2&);
 
 // Macro that forward declares a given deserialize function
 // for each stream type
@@ -18,6 +18,8 @@
     DES_TYPE(type, std::ifstream);\
     DES_TYPE(type, Cloud::File);\
     DES_TYPE(type, Cloud::ServerStream);\
+
+#define FIN_FIELD_NOT_FOUND 0
 
 namespace finapi
 {
@@ -60,8 +62,15 @@ namespace models
     {
         for (int i = 0; i < FinFields<_Model>::count; i++)
             if (FinFields<_Model>::fields[i] == field)
-                return get_field<float>(*model1) > get_field<float>(*model2);
+                return get_field<float>(model1, field) > get_field<float>(model2, field);
+    
+        assert(FIN_FIELD_NOT_FOUND);
     }
+
+    template bool greater_than<EodAdj>   (const EodAdj&,    const EodAdj&,    const std::string&);
+    template bool greater_than<DataTag>  (const DataTag&,   const DataTag&,   const std::string&);
+    template bool greater_than<Company>  (const Company&,   const Company&,   const std::string&);
+    template bool greater_than<Statement>(const Statement&, const Statement&, const std::string&);
 
 #pragma endregion
 

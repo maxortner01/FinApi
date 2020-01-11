@@ -63,8 +63,7 @@ namespace models
 
         assert(index > -1);
 
-        return get_field(model, (c_uint)index);
+        return get_field<T>(model, (c_uint)index);
     }
-
 }
 }
