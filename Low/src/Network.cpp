@@ -240,7 +240,7 @@ namespace Cloud
         }
     }
 
-    const Status File::status() const
+    Status File::status() const
     {
         return _status;
     }
@@ -280,7 +280,7 @@ namespace Cloud
 #pragma region SERVER_STREAM_H
 
     ServerStream::ServerStream(const char* filename, const char* address) :
-        fname(filename), fsize(0)
+        fname(filename), fsize(UINT32_MAX)
     {
         _socket = network::connect_socket( address );
         assert(_socket > 0);
@@ -306,6 +306,10 @@ namespace Cloud
             (char*)&fsize,
             sizeof(unsigned int)
         );
+
+        assert(fsize < UINT_MAX);
+
+        _status = OK;
     }
 
     ServerStream::ServerStream(const char* filename, Cloud::Address address) :

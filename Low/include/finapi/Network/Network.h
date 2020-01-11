@@ -11,6 +11,7 @@
  * 
  */
 #pragma once
+#define _FIN_DEBUG 
 
 /*
  * Windows includes and function definitions
@@ -85,7 +86,7 @@ namespace network
 #endif
 
 // Buffer size to expect from the server
-#define _FIN_BUFFER_SIZE 1024*2
+#define _FIN_BUFFER_SIZE 1024
 #define _FIN_PORT        1420
 
 #include "../Core/Core.h"

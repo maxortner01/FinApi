@@ -23,7 +23,7 @@ namespace execution
 {
 namespace backtest
 {
-    typedef Cloud::ServerStream _Stream;
+    typedef Cloud::File _Stream;
 
     /**
      * @brief Designed to read files for each requested symbol from 
@@ -85,6 +85,8 @@ namespace backtest
         void update_latest_data();
 
         void display_latest_data();
+
+        bool get_latest_data_timestamp(models::TimeStamp&);
 
         bool continue_backtest();
     };   

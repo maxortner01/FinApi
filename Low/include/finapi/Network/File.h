@@ -21,8 +21,8 @@ namespace Cloud
         ReadStatus read(char* ptr, c_uint size) override;
         void       close();
 
-        const Status status()   const;
-        c_uint       filesize() const;
+        Status status()   const;
+        c_uint filesize() const;
 
         ~File();
     };

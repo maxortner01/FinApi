@@ -1,5 +1,6 @@
 /**
  * @file Portfolio.h
+ *       Based of classes from: https://www.quantstart.com/articles/Event-Driven-Backtesting-with-Python-Part-V/
  * 
  * @brief The role of the Portfolio class is to keep track of all current market positions
  *        as well as the market value of the positions (known as "holdings"). This is an
@@ -98,6 +99,10 @@ namespace execution
 
         void construct_all_holdings();
 
+        void update_positions_from_fill(Event*);
+
+        void update_holdings_from_fill(Event*);
+
     public:
 
         /* CONSTRUCTOR */
@@ -113,6 +118,11 @@ namespace execution
         void update_signal(Event*);
         
         void update_fill(Event*);
+
+        void update_timeindex(Event*);
+
+        Event* generate_naive_order(Event*);
+
     };
 
 }
