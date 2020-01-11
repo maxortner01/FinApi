@@ -9,13 +9,15 @@
  * @param fill_cost  : holdings value of single security in dollars
  * @param final_cost : reference to return the final calulated cost
  */
-void alpaca_final_cost(unsigned int quantity, double fill_cost, double& final_cost)
+void calculate_alpaca_commission(unsigned int quantity, double fill_cost, double& commission)
 {
-    final_cost = (double)quantity * fill_cost;
+    commission = 0.0;
 }
 
 namespace finapi
 {
+
+    typedef Cloud::ServerStream _Stream;
     
 
     /*        Event.h         */ 
@@ -23,12 +25,12 @@ namespace execution
 {
     /* Protocols for commission calculation */
 
-    void calculate_final_broker_cost(BrokerType broker, unsigned int quantity, double fill_cost, double& final_cost)
+    void calculate_final_broker_commission(BrokerType broker, unsigned int quantity, double fill_cost, double& final_commission)
     {
         switch(broker)
         {
             case ALPACA:
-                alpaca_final_cost(quantity, fill_cost, final_cost);
+                calculate_alpaca_commission(quantity, fill_cost, final_commission);
                 break;
         }
     }
@@ -92,6 +94,8 @@ namespace execution
     //float Bar::volume() const
     //    { return (*_volume); }
 
+#pragma region EVENT_H
+
     /**
      * EVENT IMPLEMENTATION
      */ 
@@ -133,7 +137,7 @@ namespace execution
      * @param sig_type 
      */
     SignalEvent::SignalEvent(std::string sym, models::TimeStamp d_time, std::string sig_type) :
-        Event("SIGNAL"), symbol(sym), date_time(d_time), signal_type(sig_type)
+        Event("SIGNAL"), _symbol(sym), _date_time(d_time), _signal_type(sig_type)
     { }
 
     /* METHODS */
@@ -144,10 +148,10 @@ namespace execution
      */
     void SignalEvent::print_event()
     {
-        std::cout << "Signal: Symbol=" << symbol
-                  << ", Year=" << date_time.year
-                  << ", Month=" << date_time.month
-                  << ", Day="<< date_time.day << std::endl;
+        std::cout << "Signal: Symbol=" << _symbol
+                  << ", Year=" << _date_time.year
+                  << ", Month=" << _date_time.month
+                  << ", Day="<< _date_time.day << std::endl;
     }
 
     /**
@@ -165,7 +169,7 @@ namespace execution
      * @param quant 
      */
     OrderEvent::OrderEvent(std::string sym, std::string ord_type, std::string dirx, unsigned int quant) :
-        Event("ORDER"), symbol(sym), order_type(ord_type), direction(dirx), quantity(quant)
+        Event("ORDER"), _symbol(sym), _order_type(ord_type), _direction(dirx), _quantity(quant)
     { }
 
     /* METHODS */
@@ -176,10 +180,10 @@ namespace execution
      */
     void OrderEvent::print_event()
     {
-        std::cout << "Order: Symbol=" << symbol
-                  << ", Type=" << order_type
-                  << ", Quantity=" << quantity
-                  << ", Direction="<< direction << std::endl;
+        std::cout << "Order: Symbol=" << _symbol
+                  << ", Type=" << _order_type
+                  << ", Quantity=" << _quantity
+                  << ", Direction="<< _direction << std::endl;
     }
 
     /**
@@ -190,20 +194,21 @@ namespace execution
 
     FillEvent::FillEvent(std::string t_index, std::string sym, std::string exch, std::string dir,
                          BrokerType t_broker, unsigned int quant, float f_cost) :
-        Event("FILL"), time_index(t_index), symbol(sym), exchange(exch), 
-        direction(dir), broker(t_broker), quantity(quant), fill_cost(f_cost)
+        Event("FILL"), _time_index(t_index), _symbol(sym), _exchange(exch), 
+        _direction(dir), _broker(t_broker), _quantity(quant), _fill_cost(f_cost)
     { }
 
     /* METHODS */
 
-    double FillEvent::calculate_final_cost()
+    double FillEvent::commission()
     {
-        double final_cost;
-        calculate_final_broker_cost(broker, quantity, fill_cost, final_cost);
+        double final_commission;
+        calculate_final_broker_commission(_broker, _quantity, _fill_cost, final_commission);
     }
 
+#pragma endregion
 
-    /*     DataHandler.h      */
+#pragma region DATA_HANDLER_H
 
     /**
      * SYMBOL_LIST IMPLEMENTATION
@@ -253,7 +258,9 @@ namespace execution
         return true;
     }
 
-    /*     Strategy.h      */
+#pragma endregion
+
+#pragma region STRATEGY_H
 
     /**
      * STRATEGY IMPLEMENTATION
@@ -261,7 +268,7 @@ namespace execution
 
     /* CONSTRUCTORS */
 
-    template class BuyAndHold<backtest::FinApiHandler<models::EodAdj, Cloud::File>, models::EodAdj >;
+    template class BuyAndHold<backtest::FinApiHandler<models::EodAdj>, models::EodAdj >;
 
     template<typename _DataHandler, typename _DataModel>
     BuyAndHold<_DataHandler, _DataModel>::BuyAndHold(SymbolList& s_list, EVENT_QUEUE_PTR events, _DataHandler& eod_d) :
@@ -326,7 +333,6 @@ namespace execution
         }        
     }
 
-    //std::unordered_map<std::string, bool> bought;
     /**
      * @brief Display all symbol holdings
      * 
@@ -346,13 +352,316 @@ namespace execution
         } 
     }
 
+#pragma endregion
+
+#pragma region PORTFOLIO_H
+
+    template class NaivePortfolio<backtest::FinApiHandler<models::EodAdj> >;
+
+    /* CONSTRUCTORS */
+
+    /**
+     * @brief Construct a new NaivePortfolio<_DataHandler>::NaivePortfolio object
+     * 
+     * @tparam _DataHandler 
+     * @param d 
+     * @param e_ptr 
+     * @param all_syms 
+     * @param s_date 
+     * @param i_cap 
+     */
+    template<typename _DataHandler>
+    NaivePortfolio<_DataHandler>::NaivePortfolio(_DataHandler& d, EVENT_QUEUE_PTR e_ptr, SymbolList all_syms, models::TimeStamp s_date, float i_cap) :
+        Portfolio(), _data(&d), _events(e_ptr), _all_symbols(all_syms), _start_date(s_date), _initial_capital(i_cap)
+    { 
+        construct_all_positions();
+        construct_all_holdings();
+        _current_positions = _all_positions.begin();
+        _current_holdings  = _all_holdings.begin(); 
+    }
+
+    /* DESTRUCTOR */
+
+    template<typename _DataHandler>
+    NaivePortfolio<_DataHandler>::~NaivePortfolio()
+    {
+        for (int i = 0; i < _all_positions.size(); i++)
+            delete _all_positions[i];
+        for (int i = 0; i < _all_holdings.size(); i++)
+            delete _all_holdings[i];
+    }
+
+    /* PRIVATE METHODS */
+
+    /**
+     * @brief Initializes the positions data
+     *        _all_positions stores a list of all previous positions recorded
+     *        at the timestamp of a market data event. Position = quantity of asset
+     * 
+     * @tparam _DataHandler 
+     */
+    template<typename _DataHandler>
+    void NaivePortfolio<_DataHandler>::construct_all_positions()
+    {
+        std::string symbol;
+        std::unordered_map<std::string, float>* new_positions;
+        new_positions = new std::unordered_map<std::string, float>();
+
+        // add keys for all symbols to map and set value to 0
+        while (_all_symbols.get_next_symbol(symbol))
+        {
+            std::transform(symbol.begin(), symbol.end(), symbol.begin(), ::tolower);
+            (*new_positions)[symbol] = 0.0;
+        }
+
+        // set start date
+        (*new_positions)["year"]  = _start_date.year;
+        (*new_positions)["month"] = _start_date.month;
+        (*new_positions)["day"]   = _start_date.day;
+
+        // add map to positions vector
+        _all_positions.push_back(new_positions);
+        _all_positions.shrink_to_fit();
+    }
+
+    /**
+     * @brief Initializes the holdings data
+     *        _all_holdings stores historical list of all symbol holdings.
+     *        Holding = market value of positions held at time stamp
+     * 
+     * @tparam _DataHandler 
+     */
+    template<typename _DataHandler>
+    void NaivePortfolio<_DataHandler>::construct_all_holdings()
+    {
+        std::string symbol;
+        std::unordered_map<std::string, float>* new_holdings;
+        new_holdings = new std::unordered_map<std::string, float>();
+
+        while (_all_symbols.get_next_symbol(symbol))
+        {
+            std::transform(symbol.begin(), symbol.end(), symbol.begin(), ::tolower);
+            (*new_holdings)[symbol] = 0.0;
+        }
+
+        (*new_holdings)["cash"]  = _initial_capital;
+        (*new_holdings)["comm"]  = 0.0;
+        (*new_holdings)["total"] = _initial_capital;
+        (*new_holdings)["year"]  = _start_date.year;
+        (*new_holdings)["month"] = _start_date.month;
+        (*new_holdings)["day"]   = _start_date.day;
+
+        _all_holdings.push_back(new_holdings);
+        _all_holdings.shrink_to_fit();
+    }
+
+    /**
+     * @brief Takes a FillEvent object and updates the position to reflect
+     *        the new portfolio
+     * 
+     * @tparam _DataHandler 
+     * @param fill_event 
+     */
+    template<typename _DataHandler>
+    void NaivePortfolio<_DataHandler>::update_positions_from_fill(Event* event)
+    {
+        float fill_dir = 0;
+        FillEvent* fill_event = dynamic_cast<FillEvent*>(event);
+
+        if (fill_event->direction() == "BUY")
+            fill_dir = 1.0;
+        else
+            fill_dir = -1.0;
+
+        (*(*_current_positions))[fill_event->symbol()] += fill_dir * fill_event->quantity();     
+    }
+
+    /**
+     * @brief 
+     * 
+     * @tparam _DataHandler 
+     * @param fill_event 
+     */
+    template<typename _DataHandler>
+    void NaivePortfolio<_DataHandler>::update_holdings_from_fill(Event* event)
+    {
+        FillEvent* fill_event = dynamic_cast<FillEvent*>(event);
+        float fill_dir = 0;
+        float fill_cost;
+        float final_cost;
+        models::EodAdj* current_data = nullptr;
+
+        if (_data->get_latest_symbol_data(current_data, fill_event->symbol()))
+        {
+            if (fill_event->direction() == "BUY")
+                fill_dir = 1.0;
+            else
+                fill_dir = -1.0;
+
+                // close price
+            fill_cost = current_data->adjClose.value;
+            final_cost = fill_dir * fill_cost * fill_event->quantity();
+            (*(*_current_positions))[fill_event->symbol()] += final_cost;
+            (*(*_current_positions))["comm"] += fill_event->commission();
+            (*(*_current_positions))["cash"] -= (final_cost + fill_event->commission());
+            (*(*_current_positions))["total"] -= (final_cost + fill_event->commission());
+        }
+            
+    }
+
+    /* METHODS */
+
+    /**
+     * @brief Acts on a SignalEvent to generate new orders
+     *        based on the portfolio logic.
+     * 
+     */
+    template<typename _DataHandler>
+    void NaivePortfolio<_DataHandler>::update_signal(Event* event)
+    {
+        std::cout << "IMPLEMENT" << std::endl;
+    }
+
+    /**
+     * @brief Updates the portfolio current positions and 
+     *        holdings from a FillEvent
+     * 
+     */
+    template<typename _DataHandler>
+    void NaivePortfolio<_DataHandler>::update_fill(Event* event)
+    {
+        if (event->type() == "FILL")
+        {
+            update_positions_from_fill(event);
+            update_holdings_from_fill(event);
+        }
+    }
+
+    /**
+     * @brief Updates positions and holdings when given a MarketEvent
+     * 
+     * @tparam _DataHandler 
+     * @param event 
+     */
+    template<typename _DataHandler>
+    void NaivePortfolio<_DataHandler>::update_timeindex(Event* event)
+    {
+        float market_value;
+        models::TimeStamp current_time;
+        models::EodAdj*   current_data = nullptr; // THIS DATA TYPE NEEDS TO BE ABSTRACTED
+        // update POSITIONS
+        std::string symbol;
+        std::unordered_map<std::string, float>* new_positions = nullptr;
+        new_positions = new std::unordered_map<std::string, float>();
+
+        // add keys for all symbols to map and set value to previous value
+        while (_all_symbols.get_next_symbol(symbol))
+        {
+            std::transform(symbol.begin(), symbol.end(), symbol.begin(), ::tolower);
+            (*new_positions)[symbol] = (*(*_current_positions))[symbol];
+        }
+
+        // iterate current positions iterator
+        _data->get_latest_data_timestamp(current_time);
+        
+        // set new date
+        (*new_positions)["year"]  = current_time.year;
+        (*new_positions)["month"] = current_time.month;
+        (*new_positions)["day"]   = current_time.day;
+        
+        // add map to positions vector
+        _all_positions.push_back(new_positions);
+        _all_positions.shrink_to_fit();
+
+        _current_positions = _all_positions.end() - 1;
+        
+        // PRINT
+        //for (std::pair<std::string, float> element : *(*_current_positions))
+        //{
+        //    std::cout << element.first << ":\t" << element.second << std::endl;
+        //}   
+
+        // update HOLDINGS
+        std::unordered_map<std::string, float>* new_holdings = nullptr;
+        new_holdings = new std::unordered_map<std::string, float>();
+
+        (*new_holdings)["cash"]  = (*(*_current_holdings))["cash"];
+        (*new_holdings)["comm"]  = (*(*_current_holdings))["comm"];
+        (*new_holdings)["total"] = (*(*_current_holdings))["cash"];
+        (*new_holdings)["year"]  = current_time.year;
+        (*new_holdings)["month"] = current_time.month;
+        (*new_holdings)["day"]   = current_time.day;
+
+        while (_all_symbols.get_next_symbol(symbol))
+        {
+            // approximation to the real value
+            std::transform(symbol.begin(), symbol.end(), symbol.begin(), ::tolower);
+            if (_data->get_latest_symbol_data(current_data, symbol))
+            {
+                market_value             = ((*(*_current_positions))[symbol]) * current_data->adjClose.value;
+                (*new_holdings)[symbol]  = market_value;
+                (*new_holdings)["total"] += market_value;
+            }
+        }
+
+        _all_holdings.push_back(new_holdings);
+        _all_holdings.shrink_to_fit();
+
+        _current_holdings = _all_holdings.end() - 1;
+    }
+
+    /**
+     * @brief Transacts an OrderEvent object as a constant quantity sizing of the 
+     *        signal object, without risk management or position sizing considereations.
+     * 
+     * @tparam _DataHandler 
+     * @param signal_event 
+     * @return Event* 
+     */
+    template<typename _DataHandler>
+    Event* NaivePortfolio<_DataHandler>::generate_naive_order(Event* signal_event)
+    {
+        Event* event = nullptr;
+        if (signal_event->type() == "SIGNAL")
+        {
+            OrderEvent* order = nullptr;
+            // cast to signal event
+            SignalEvent* fill_event = dynamic_cast<SignalEvent*>(signal_event);
+            std::string symbol      = fill_event->symbol();
+            std::string direction   = fill_event->signal_type();
+
+            float market_quantity   = 100.0;
+            float current_quantity  = (*(*_current_positions))[symbol];
+            std::string order_type  = "MKT";
+
+            if (direction == "LONG" && current_quantity == 0)
+                order = new OrderEvent(symbol, order_type, "BUY", market_quantity);
+            if (direction == "SHORT" && current_quantity == 0)
+                order = new OrderEvent(symbol, order_type, "SELL", market_quantity);
+            
+            if (direction == "EXIT" && current_quantity > 0)
+                order = new OrderEvent(symbol, order_type, "SELL", abs(current_quantity));
+            if (direction == "EXIT" && current_quantity < 0)
+                order = new OrderEvent(symbol, order_type, "BUY", abs(current_quantity));
+
+            event = &(*order);
+        }
+        return event;
+    }
+    
+
+#pragma endregion
+
 namespace backtest
 {
+
+#pragma region FIN_API_HANDLER_H
+
     /**
      * FIN_API_HANDLER IMPLEMENTATION
      */ 
 
-    template class FinApiHandler<models::EodAdj, Cloud::File>;    
+    template class FinApiHandler<models::EodAdj>;
 
     /* CONSTRUCTORS */
 
@@ -366,8 +675,8 @@ namespace backtest
      * @param s_list 
      * @param events 
      */
-    template<typename _DataModel, typename _Stream>
-    FinApiHandler<_DataModel, _Stream>::FinApiHandler(std::string d_dir, EVENT_QUEUE_PTR events, SymbolList s_list, int start_year, int end_year) :
+    template<typename _DataModel>
+    FinApiHandler<_DataModel>::FinApiHandler(std::string d_dir, EVENT_QUEUE_PTR events, SymbolList s_list, int start_year, int end_year) :
         DataHandler(), event_q(events), _continue_backtest(true), _data_dir(d_dir), model_id(_DataModel::model_type()), year_range(start_year, end_year), 
         all_symbols(s_list), _working_year(start_year) 
     { get_working_year_data(); }
@@ -379,8 +688,8 @@ namespace backtest
      *        Deallocate dataframes for each symbol in unordered map
      * 
      */
-    template<typename _DataModel, typename _Stream>
-    FinApiHandler<_DataModel, _Stream>::~FinApiHandler()
+    template<typename _DataModel>
+    FinApiHandler<_DataModel>::~FinApiHandler()
     {
         for (std::pair<std::string, modeler::FinDataFrame<_DataModel, _Stream>* > element : symbol_data)
             delete element.second;        
@@ -388,8 +697,8 @@ namespace backtest
 
     /* PRIVATE METHODS */
 
-    template<typename _DataModel, typename _Stream>
-    void FinApiHandler<_DataModel, _Stream>::get_working_year_data()
+    template<typename _DataModel>
+    void FinApiHandler<_DataModel>::get_working_year_data()
     {
         std::string symbol;
         modeler::FinDataFrame<_DataModel, _Stream>* data = nullptr;
@@ -415,8 +724,8 @@ namespace backtest
      * @brief Returns the latest bar from the data feed. Moves iterator in data frame
      * 
      */
-    template<typename _DataModel, typename _Stream>
-    bool FinApiHandler<_DataModel, _Stream>::get_next_model(_DataModel*& data_model, std::string symbol)
+    template<typename _DataModel>
+    bool FinApiHandler<_DataModel>::get_next_model(_DataModel*& data_model, std::string symbol)
     {
         if (!in_symbol_data(symbol)) return false;
         if (symbol_data[symbol]->get_next_model(data_model)) return true;
@@ -432,8 +741,8 @@ namespace backtest
      * @return true       :
      * @return false      :
      */
-    template<typename _DataModel, typename _Stream>
-    bool FinApiHandler<_DataModel, _Stream>::in_symbol_data(std::string symbol)
+    template<typename _DataModel>
+    bool FinApiHandler<_DataModel>::in_symbol_data(std::string symbol)
     {
         typename std::unordered_map<std::string, modeler::FinDataFrame<_DataModel, _Stream>* >::const_iterator find = symbol_data.find(symbol);
         if (find == symbol_data.end()) return false;
@@ -449,8 +758,8 @@ namespace backtest
      * @return true 
      * @return false 
      */
-    template<typename _DataModel, typename _Stream>
-    bool FinApiHandler<_DataModel, _Stream>::in_latest_data(std::string symbol)
+    template<typename _DataModel>
+    bool FinApiHandler<_DataModel>::in_latest_data(std::string symbol)
     {
         typename std::unordered_map<std::string, _DataModel*>::const_iterator find = latest_symbol_data.find(symbol);
         if (find == latest_symbol_data.end()) return false;
@@ -463,17 +772,18 @@ namespace backtest
      * @param symbol                                  : identifier
      * @return FinDataFrame<_DataModel, _Stream>* : pointer to allocated data frame
      */
-    template<typename _DataModel, typename _Stream>
-    modeler::FinDataFrame<_DataModel, _Stream>* FinApiHandler<_DataModel, _Stream>::download_symbol_data(std::string symbol)
+    template<typename _DataModel>
+    modeler::FinDataFrame<_DataModel, _Stream>* FinApiHandler<_DataModel>::download_symbol_data(std::string symbol)
     {
         std::string connString(_data_dir + get_binary_file_dir(model_id, symbol, std::to_string(_working_year)));
         // TO DO: WRITE THIS TO ACCOMODATE IFSTREAM
         _Stream inFile(connString.c_str(), Cloud::LocalServer);
-        modeler::FinDataFrame<_DataModel, _Stream>* newDataFrame = nullptr;
         
+        modeler::FinDataFrame<_DataModel, _Stream>* newDataFrame = nullptr;
+        //std::cout << inFile.status() << std::endl;
         if (inFile.good())
         {    
-            std::cout << connString << std::endl;           
+            //std::cout << connString << std::endl;           
             newDataFrame = new modeler::FinDataFrame<_DataModel, _Stream>(inFile);
             newDataFrame->sort_data("Date");
         }   
@@ -492,10 +802,9 @@ namespace backtest
      * @return true       :
      * @return false      :
      */
-    template<typename _DataModel, typename _Stream>
-    bool FinApiHandler<_DataModel, _Stream>::get_latest_symbol_data(_DataModel*& data_model, std::string symbol)
+    template<typename _DataModel>
+    bool FinApiHandler<_DataModel>::get_latest_symbol_data(_DataModel*& data_model, std::string symbol)
     { 
-        typename std::unordered_map<std::string, _DataModel*>::const_iterator find = latest_symbol_data.find(symbol);
         if (!in_latest_data(symbol)) return false;
         else
         {
@@ -509,8 +818,8 @@ namespace backtest
      *        for all symbols in the symbol list
      * 
      */
-    template<typename _DataModel, typename _Stream>
-    void FinApiHandler<_DataModel, _Stream>::update_latest_data()
+    template<typename _DataModel>
+    void FinApiHandler<_DataModel>::update_latest_data()
     {
         bool get_next_year = false;
         MarketEvent* event = nullptr;
@@ -526,38 +835,28 @@ namespace backtest
             // symbol to lower case
             std::transform(symbol.begin(), symbol.end(), symbol.begin(), ::tolower);
             // confirm symbol is in symbol data
-            typename std::unordered_map<std::string, modeler::FinDataFrame<_DataModel, _Stream>* >::const_iterator find = symbol_data.find(symbol);
-            if (find == symbol_data.end())
-                continue;
+            if (!in_symbol_data(symbol)) continue;
 
-            // get next data model in each symbol data frame until the 
+            // get next data model in each symbol's data frame until the 
             // end of the data frame is reached
-            if (get_next_model(data_bar, symbol))
-                latest_symbol_data[symbol] = data_bar; 
-            else
-                get_next_year = true;
+            if (get_next_model(data_bar, symbol)) latest_symbol_data[symbol] = data_bar; 
+            else get_next_year = true;
         }
         // update data or quit simulation
         if (get_next_year)
         {
-            // end of data reach, load new year
-            if (_working_year == year_range.second)
+            if (_working_year < year_range.second)
             {
-                std::cout << "Year completed : " << _working_year << std::endl;
-                _continue_backtest = false;
-            }
-            else
-            {
-                // increment year, clear data, and load new year data
-                std::cout << "Year completed : " << _working_year << std::endl;
-                //std::cin >> t;
+                std::cin >> t;
                 _working_year += 1;
                 get_working_year_data();        
-                update_latest_data();            
+                update_latest_data();   
             }
+            else
+                _continue_backtest = false;      
         }
 
-        if (_continue_backtest)
+        if (!get_next_year)
         {
             event = new MarketEvent();
             event_q->push(event);
@@ -568,8 +867,8 @@ namespace backtest
      * @brief Displays all data in latest_symbol_data structure
      * 
      */
-    template<typename _DataModel, typename _Stream>
-    void FinApiHandler<_DataModel, _Stream>::display_latest_data()
+    template<typename _DataModel>
+    void FinApiHandler<_DataModel>::display_latest_data()
     {
         for (std::pair<std::string, _DataModel*> element : latest_symbol_data)
         {
@@ -578,11 +877,32 @@ namespace backtest
             std::cout << std::endl;
         }       
     }
+
+    /**
+     * @brief Returns the date of latest data
+     * 
+     * @tparam _DataModel 
+     * @param time 
+     * @return true 
+     * @return false 
+     */
+    template<typename _DataModel>
+    bool FinApiHandler<_DataModel>::get_latest_data_timestamp(models::TimeStamp& time)
+    {
+        if (!latest_symbol_data.size())
+            return false;
+        else
+        {
+            time = latest_symbol_data.begin()->second->date();
+            return true;
+        }
+    }
     
-    template<typename _DataModel, typename _Stream>
-    bool FinApiHandler<_DataModel, _Stream>::continue_backtest()
+    template<typename _DataModel>
+    bool FinApiHandler<_DataModel>::continue_backtest()
         { return _continue_backtest; }
 
+#pragma endregion
     
     
 }

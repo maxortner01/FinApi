@@ -23,6 +23,8 @@ namespace execution
 {
 namespace backtest
 {
+    typedef Cloud::File _Stream;
+
     /**
      * @brief Designed to read files for each requested symbol from 
      *        server database and provide an interface to obtain the
@@ -40,7 +42,7 @@ namespace backtest
      *          - working_year       : current year of data in symbol_data
      * 
      */
-    template<typename _DataModel, typename _Stream>
+    template<typename _DataModel>
     class FinApiHandler : public DataHandler
     {
         std::string _data_dir;
@@ -83,6 +85,8 @@ namespace backtest
         void update_latest_data();
 
         void display_latest_data();
+
+        bool get_latest_data_timestamp(models::TimeStamp&);
 
         bool continue_backtest();
     };   

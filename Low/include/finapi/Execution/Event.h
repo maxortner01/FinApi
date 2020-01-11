@@ -82,9 +82,9 @@ namespace execution
      */
     class SignalEvent : public Event
     {
-        std::string symbol;
-        models::TimeStamp   date_time;
-        std::string signal_type;
+        std::string       _symbol;
+        models::TimeStamp _date_time;
+        std::string       _signal_type;
         
 
     public:
@@ -99,6 +99,15 @@ namespace execution
         /* METHODS */
 
         void print_event();
+
+        std::string symbol()
+            { return _symbol; }
+
+        models::TimeStamp date_time()
+            { return _date_time; }
+
+        std::string signal_type()
+            { return _signal_type; }
 
     };
 
@@ -116,10 +125,10 @@ namespace execution
      */
     class OrderEvent : public Event
     {
-        std::string  symbol;
-        std::string  order_type;
-        std::string  direction;
-        unsigned int quantity;
+        std::string  _symbol;
+        std::string  _order_type;
+        std::string  _direction;
+        unsigned int _quantity;
 
     public:
 
@@ -133,6 +142,18 @@ namespace execution
         /* METHODS */
 
         void print_event();
+
+        std::string symbol()
+            { return _symbol; }
+
+        std::string order_type()
+            { return _order_type; }
+
+        std::string direction()
+            { return _direction; }
+
+        unsigned int quantity()
+            { return _quantity; }
 
     };
    
@@ -153,13 +174,13 @@ namespace execution
      */
     class FillEvent : public Event
     {
-        std::string  time_index;
-        std::string  symbol;
-        std::string  exchange;
-        std::string  direction;
-        BrokerType   broker;
-        unsigned int quantity;
-        float        fill_cost;
+        std::string  _time_index;
+        std::string  _symbol;
+        std::string  _exchange;
+        std::string  _direction;
+        BrokerType   _broker;
+        unsigned int _quantity;
+        float        _fill_cost;
 
     public:
 
@@ -172,12 +193,33 @@ namespace execution
 
         /* METHODS */
 
-        double calculate_final_cost();
+        double commission();
 
         void print_event()
         {
             std::cout << "IMPLEMENT" << std::endl;
         }
+
+        std::string time_index()
+            { return _time_index; }
+
+        std::string symbol()
+            { return _symbol; }
+
+        std::string exchange()
+            { return _exchange; }
+
+        std::string direction()
+            { return _direction; }
+
+        BrokerType broker()
+            { return _broker; }
+
+        unsigned int quantity()
+            { return _quantity; }
+
+        float fill_cost()
+            { return _fill_cost; }
 
     };
 }

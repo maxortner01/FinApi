@@ -217,7 +217,7 @@ namespace filemethods
         clean_list(data);
 
         EodAdj* newEod = new EodAdj;
-
+        unsigned int size = sizeof(EodAdj);
         while(filemethods::read(file, newEod->date.ptr()))
         {
             // Field count specific to this data type
@@ -227,10 +227,11 @@ namespace filemethods
             
             for (int j = 0; j < FIELD_COUNT; j++)
                 filemethods::read(file, (float_iter + j)->ptr());
-                
+            assert(newEod->date().year != 0);
             data.push_back(newEod);
             newEod = new EodAdj;
         }
+        
         data.shrink_to_fit();
     }
 
@@ -432,6 +433,7 @@ namespace modeler
 #pragma region FIN_DATA_FRAME_H
 
     template class FinDataFrame<models::EodAdj, Cloud::File>;
+    template class FinDataFrame<models::EodAdj, Cloud::ServerStream>;
     template class FinDataFrame<models::EodAdj, std::ifstream>; 
 
     /* CONSTRUCTORS */
@@ -448,7 +450,7 @@ namespace modeler
     {
         deserialize(data, connection);
         it = data.begin();
-        connection.close();             
+        //connection.close();             
     }
 
     /* DESTRUCTOR */
