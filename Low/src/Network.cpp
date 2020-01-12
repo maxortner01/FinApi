@@ -41,7 +41,7 @@ namespace network
     // The magic error that comes from nowhere. I guess this will
     // never be freed
     object::~object()
-        { /* std::free(_addr); */ close_connection(_socket); std::cout << "closed\n"; }
+        { /* std::free(_addr); */ close_connection(_socket); }
 
     mac get_mac_address()
     {
@@ -103,7 +103,6 @@ namespace network
     int make_socket()
     {
         WSAStart();
-        std::cout << "opened\n";
         return socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     }
 

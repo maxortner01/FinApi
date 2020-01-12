@@ -1,5 +1,7 @@
 #include "finapi/finapi.h"
 
+#include <iomanip>
+
 // Macro to forward declare a template function
 #define TYPE_TEMP_FUNC(func_name, retrn, type, ...)\
     template retrn func_name<type>(__VA_ARGS__)
@@ -56,21 +58,24 @@ namespace models
         "end_date", "filing_date", "fiscal_period", "id", "start_date", "statement_code", "type", "fiscal_year"
     };
 
+#define FIELD_OPERATOR_FUNCTION(name, operator)\
+    template<typename _Model>\
+    bool name(const _Model& model1, const _Model& model2, const std::string& field)\
+    {\
+        for (int i = 0; i < FinFields<_Model>::count; i++)\
+            if (FinFields<_Model>::fields[i] == field)\
+                return get_field<float>(model1, field) operator get_field<float>(model2, field);\
+        assert(FIN_FIELD_NOT_FOUND);\
+    }\
+    template bool name<EodAdj>   (const EodAdj&,    const EodAdj&,    const std::string&);\
+    template bool name<DataTag>  (const DataTag&,   const DataTag&,   const std::string&);\
+    template bool name<Company>  (const Company&,   const Company&,   const std::string&);\
+    template bool name<Statement>(const Statement&, const Statement&, const std::string&);
 
-    template<typename _Model>
-    bool greater_than(const _Model& model1, const _Model& model2, const std::string& field)
-    {
-        for (int i = 0; i < FinFields<_Model>::count; i++)
-            if (FinFields<_Model>::fields[i] == field)
-                return get_field<float>(model1, field) > get_field<float>(model2, field);
-    
-        assert(FIN_FIELD_NOT_FOUND);
-    }
+    FIELD_OPERATOR_FUNCTION(greater_than, >);
+    FIELD_OPERATOR_FUNCTION(less_than,    <);
 
-    template bool greater_than<EodAdj>   (const EodAdj&,    const EodAdj&,    const std::string&);
-    template bool greater_than<DataTag>  (const DataTag&,   const DataTag&,   const std::string&);
-    template bool greater_than<Company>  (const Company&,   const Company&,   const std::string&);
-    template bool greater_than<Statement>(const Statement&, const Statement&, const std::string&);
+#undef FIELD_OPERATOR_FUNCTION
 
 #pragma endregion
 
@@ -248,51 +253,7 @@ namespace filemethods
      * EODADJ IMPLEMENTATION
      */
 
-    /* METHODS */
-    bool greater_than(const EodAdj& lhs, const EodAdj& rhs, std::string field)
-    {
-        if (field == "Open")
-            return lhs.openPrice() > rhs.openPrice();
-        else if (field == "High")
-            return lhs.high() > rhs.high();
-        else if (field == "Low")
-            return lhs.low() > rhs.low();
-        else if (field == "Close")
-            return lhs.close() > rhs.close();
-        else if (field == "AdjClose")
-            return lhs.adjClose() > rhs.adjClose();
-        else if (field == "Volume")
-            return lhs.volume() > rhs.volume();
-        else if (field == "DivAmount")
-            return lhs.divAmount() > rhs.divAmount();
-        else if (field == "SplitCo")
-            return lhs.splitCo() > rhs.splitCo();
-        else if (field == "Date")
-            return lhs.date() > rhs.date(); 
-    }
-
-    bool less_than(const EodAdj& lhs, const EodAdj& rhs, std::string field) 
-    {
-        if (field == "Open")
-            return lhs.openPrice() < rhs.openPrice();
-        else if (field == "High")
-            return lhs.high() < rhs.high();
-        else if (field == "Low")
-            return lhs.low() < rhs.low();
-        else if (field == "Close")
-            return lhs.close() < rhs.close();
-        else if (field == "AdjClose")
-            return lhs.adjClose() < rhs.adjClose();
-        else if (field == "Volume")
-            return lhs.volume() < rhs.volume();
-        else if (field == "DivAmount")
-            return lhs.divAmount() < rhs.divAmount();
-        else if (field == "SplitCo")
-            return lhs.splitCo() < rhs.splitCo();
-        else if (field == "Date")
-            return lhs.date() < rhs.date(); 
-    }
-
+    
     void display_model(const EodAdj& obj)
     {
         std::cout << "\nDate=\t"   << obj.date().month << "/" << obj.date().day << "/" << obj.date().year
@@ -348,9 +309,9 @@ namespace filemethods
     bool ModelComparator<DataModel>::compare(DataModel lhs, DataModel rhs)
     {
         if (ascending)
-            return less_than(lhs, rhs, field_to_compare);
+            return less_than<DataModel>(lhs, rhs, field_to_compare);
         else
-            return greater_than(lhs, rhs, field_to_compare);
+            return greater_than<DataModel>(lhs, rhs, field_to_compare);
     } 
 
     /**
@@ -367,9 +328,9 @@ namespace filemethods
     bool ModelComparator<DataModel>::compare_ptr(DataModel* lhs, DataModel* rhs)
     {
         if (ascending)
-            return less_than(*lhs, *rhs, field_to_compare);
+            return less_than<DataModel>(*lhs, *rhs, field_to_compare);
         else
-            return greater_than(*lhs, *rhs, field_to_compare);
+            return greater_than<DataModel>(*lhs, *rhs, field_to_compare);
     } 
 
 #pragma endregion
