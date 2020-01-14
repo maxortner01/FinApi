@@ -43,6 +43,7 @@ namespace finapi
 {
 namespace Cloud
 {
+    class File;
     class ServerStream;
 
 namespace _ADDR
@@ -53,8 +54,6 @@ namespace _ADDR
         "99.83.27.95"
     };
 }
-
-    class File;
 
     enum Address
     {
@@ -149,17 +148,6 @@ namespace _ADDR
      * @return bool     Whether or not the file exists
      */
     bool file_exists(const char* filename, const char* address);
-
-    /**
-     * @brief Create a socket solely for the purpose of pulling a file from the server
-     * 
-     * @param filename  Name of the file to pull
-     * @param i         Index of the chunk within the file to pull
-     * @param filesize  Size of the file
-     * @param buffer    Location of the buffer to populate       
-     * @param address   IP Address of the server
-     */
-    void request_file(const char* filename, const int i, const int filesize, char* buffer, const char* address, ServerStream& stream);
 
     Status get_file(const char* filename, const char* address, char*& buffer, uint* fsize);
 
