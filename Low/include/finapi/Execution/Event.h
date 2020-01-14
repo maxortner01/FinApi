@@ -23,6 +23,8 @@ namespace execution
 {
     #define EVENT_QUEUE_PTR std::queue<Event*>*
 
+    enum EventType { MARKET, SIGNAL, ORDER, FILL };
+
     /**
      * @brief Base class providing an interface for all inherited events
      *        that will trigger further events in the trading infrastructure.

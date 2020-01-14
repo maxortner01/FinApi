@@ -68,32 +68,6 @@ namespace execution
         }
     }
 
-    /**
-     * BAR IMPLEMENTATION
-     */ 
-
-    /* CONSTRUCTORS */
-
-    //Bar::Bar(c_fref o, c_fref h, c_fref l, c_fref c, c_fref v) :
-    //    _open(&o), _high(&h), _low(&l), _close(&c), _volume(&v) { }
-//
-    ///* METHODS */
-//
-    //float Bar::open() const
-    //    { return (*_open); }
-//
-    //float Bar::high() const  
-    //    { return (*_high); }
-//
-    //float Bar::low() const
-    //    { return (*_low); }
-//
-    //float Bar::close() const
-    //    { return (*_close); }
-//
-    //float Bar::volume() const
-    //    { return (*_volume); }
-
 #pragma region EVENT_H
 
     /**
@@ -268,11 +242,10 @@ namespace execution
 
     /* CONSTRUCTORS */
 
-    template class BuyAndHold<backtest::FinApiHandler<models::EodAdj>, models::EodAdj >;
+    //template class BuyAndHold<backtest::FinApiHandler<models::EodAdj>, models::EodAdj >;
 
-    template<typename _DataHandler, typename _DataModel>
-    BuyAndHold<_DataHandler, _DataModel>::BuyAndHold(SymbolList& s_list, EVENT_QUEUE_PTR events, _DataHandler& eod_d) :
-        Strategy(), all_symbols(s_list), event_q(events), eod_data(&eod_d), data_model(nullptr)
+    BuyAndHold::BuyAndHold(SymbolList& s_list, std::queue<Event*>& events, DataHandler& eod_d) :
+        Strategy(), all_symbols(s_list), event_q(&events), eod_data(&eod_d)
     { calculate_initial_bought(); }
 
 
@@ -283,8 +256,7 @@ namespace execution
      *        all symbols and sets them to false
      * 
      */
-    template<typename _DataHandler, typename _DataModel>
-    void BuyAndHold<_DataHandler, _DataModel>::calculate_initial_bought()
+    void BuyAndHold::calculate_initial_bought()
     {
         std::string symbol;
 
@@ -306,11 +278,11 @@ namespace execution
      * 
      * @param event 
      */
-    template<typename _DataHandler, typename _DataModel>
-    void BuyAndHold<_DataHandler, _DataModel>::calculate_signals(Event* event)
+    void BuyAndHold::calculate_signals(Event* event)
     {
         std::string symbol;
         SignalEvent* newSignal = nullptr;
+        Event* newEvent = nullptr;
 
         if (event->type() == "MARKET")
         {
@@ -324,7 +296,7 @@ namespace execution
                     if (!bought[symbol])
                     {
                         // see over loads for model get timestamp
-                        newSignal = new SignalEvent(symbol, data_model->date(), "LONG");
+                        newSignal = new SignalEvent(symbol, data_model.time(), "LONG");
                         event_q->push(newSignal);
                         bought[symbol] = true;
                     }
@@ -339,8 +311,7 @@ namespace execution
      * @tparam _DataHandler 
      * @tparam _DataModel 
      */
-    template<typename _DataHandler, typename _DataModel>
-    void BuyAndHold<_DataHandler, _DataModel>::display_holdings()
+    void BuyAndHold::display_holdings()
     {
         for (std::pair<std::string, bool> symbol : bought)
         {
@@ -356,7 +327,7 @@ namespace execution
 
 #pragma region PORTFOLIO_H
 
-    template class NaivePortfolio<backtest::FinApiHandler<models::EodAdj> >;
+    //template class NaivePortfolio<backtest::FinApiHandler<models::EodAdj> >;
 
     /* CONSTRUCTORS */
 
@@ -370,8 +341,7 @@ namespace execution
      * @param s_date 
      * @param i_cap 
      */
-    template<typename _DataHandler>
-    NaivePortfolio<_DataHandler>::NaivePortfolio(_DataHandler& d, EVENT_QUEUE_PTR e_ptr, SymbolList all_syms, models::TimeStamp s_date, float i_cap) :
+    NaivePortfolio::NaivePortfolio(DataHandler& d, EVENT_QUEUE_PTR e_ptr, SymbolList all_syms, models::TimeStamp s_date, float i_cap) :
         Portfolio(), _data(&d), _events(e_ptr), _all_symbols(all_syms), _start_date(s_date), _initial_capital(i_cap)
     { 
         construct_all_positions();
@@ -382,8 +352,7 @@ namespace execution
 
     /* DESTRUCTOR */
 
-    template<typename _DataHandler>
-    NaivePortfolio<_DataHandler>::~NaivePortfolio()
+    NaivePortfolio::~NaivePortfolio()
     {
         for (int i = 0; i < _all_positions.size(); i++)
             delete _all_positions[i];
@@ -400,8 +369,7 @@ namespace execution
      * 
      * @tparam _DataHandler 
      */
-    template<typename _DataHandler>
-    void NaivePortfolio<_DataHandler>::construct_all_positions()
+    void NaivePortfolio::construct_all_positions()
     {
         std::string symbol;
         std::unordered_map<std::string, float>* new_positions;
@@ -431,8 +399,7 @@ namespace execution
      * 
      * @tparam _DataHandler 
      */
-    template<typename _DataHandler>
-    void NaivePortfolio<_DataHandler>::construct_all_holdings()
+    void NaivePortfolio::construct_all_holdings()
     {
         std::string symbol;
         std::unordered_map<std::string, float>* new_holdings;
@@ -462,8 +429,7 @@ namespace execution
      * @tparam _DataHandler 
      * @param fill_event 
      */
-    template<typename _DataHandler>
-    void NaivePortfolio<_DataHandler>::update_positions_from_fill(Event* event)
+    void NaivePortfolio::update_positions_from_fill(Event* event)
     {
         float fill_dir = 0;
         FillEvent* fill_event = dynamic_cast<FillEvent*>(event);
@@ -482,16 +448,15 @@ namespace execution
      * @tparam _DataHandler 
      * @param fill_event 
      */
-    template<typename _DataHandler>
-    void NaivePortfolio<_DataHandler>::update_holdings_from_fill(Event* event)
+    void NaivePortfolio::update_holdings_from_fill(Event* event)
     {
         FillEvent* fill_event = dynamic_cast<FillEvent*>(event);
         float fill_dir = 0;
         float fill_cost;
         float final_cost;
-        models::EodAdj* current_data = nullptr;
+        models::Bar current_bar;
 
-        if (_data->get_latest_symbol_data(current_data, fill_event->symbol()))
+        if (_data->get_latest_symbol_data(current_bar, fill_event->symbol()))
         {
             if (fill_event->direction() == "BUY")
                 fill_dir = 1.0;
@@ -499,7 +464,7 @@ namespace execution
                 fill_dir = -1.0;
 
                 // close price
-            fill_cost = current_data->adjClose.value;
+            fill_cost = current_bar.close();
             final_cost = fill_dir * fill_cost * fill_event->quantity();
             (*(*_current_positions))[fill_event->symbol()] += final_cost;
             (*(*_current_positions))["comm"] += fill_event->commission();
@@ -511,15 +476,19 @@ namespace execution
 
     /* METHODS */
 
-    /**
-     * @brief Acts on a SignalEvent to generate new orders
-     *        based on the portfolio logic.
+     /**
+     * @brief 
      * 
+     * @tparam _DataHandler 
+     * @param event 
      */
-    template<typename _DataHandler>
-    void NaivePortfolio<_DataHandler>::update_signal(Event* event)
+    void NaivePortfolio::update_signal(Event* event)
     {
-        std::cout << "IMPLEMENT" << std::endl;
+        if (event->type() == "SIGNAL")
+        {
+            Event* new_event = generate_naive_order(event);
+            _events->push(new_event);
+        }
     }
 
     /**
@@ -527,13 +496,15 @@ namespace execution
      *        holdings from a FillEvent
      * 
      */
-    template<typename _DataHandler>
-    void NaivePortfolio<_DataHandler>::update_fill(Event* event)
+    void NaivePortfolio::update_fill(Event* event)
     {
-        if (event->type() == "FILL")
+        if (event)
         {
-            update_positions_from_fill(event);
-            update_holdings_from_fill(event);
+            if (event->type() == "FILL")
+            {
+                update_positions_from_fill(event);
+                update_holdings_from_fill(event);
+            }
         }
     }
 
@@ -543,12 +514,12 @@ namespace execution
      * @tparam _DataHandler 
      * @param event 
      */
-    template<typename _DataHandler>
-    void NaivePortfolio<_DataHandler>::update_timeindex(Event* event)
+    void NaivePortfolio::update_timeindex(Event* event)
     {
         float market_value;
         models::TimeStamp current_time;
-        models::EodAdj*   current_data = nullptr; // THIS DATA TYPE NEEDS TO BE ABSTRACTED
+        //models::EodAdj*   current_bar = nullptr; // THIS DATA TYPE NEEDS TO BE ABSTRACTED
+        models::Bar       current_bar;
         // update POSITIONS
         std::string symbol;
         std::unordered_map<std::string, float>* new_positions = nullptr;
@@ -561,7 +532,6 @@ namespace execution
             (*new_positions)[symbol] = (*(*_current_positions))[symbol];
         }
 
-        // iterate current positions iterator
         _data->get_latest_data_timestamp(current_time);
         
         // set new date
@@ -596,9 +566,9 @@ namespace execution
         {
             // approximation to the real value
             std::transform(symbol.begin(), symbol.end(), symbol.begin(), ::tolower);
-            if (_data->get_latest_symbol_data(current_data, symbol))
+            if (_data->get_latest_symbol_data(current_bar, symbol))
             {
-                market_value             = ((*(*_current_positions))[symbol]) * current_data->adjClose.value;
+                market_value             = ((*(*_current_positions))[symbol]) * current_bar.close();
                 (*new_holdings)[symbol]  = market_value;
                 (*new_holdings)["total"] += market_value;
             }
@@ -618,8 +588,7 @@ namespace execution
      * @param signal_event 
      * @return Event* 
      */
-    template<typename _DataHandler>
-    Event* NaivePortfolio<_DataHandler>::generate_naive_order(Event* signal_event)
+    Event* NaivePortfolio::generate_naive_order(Event* signal_event)
     {
         Event* event = nullptr;
         if (signal_event->type() == "SIGNAL")
@@ -648,7 +617,39 @@ namespace execution
         }
         return event;
     }
+
+   
     
+
+#pragma endregion
+
+#pragma EXECUTION_H
+
+        /* CONSTRUCTOR */
+
+        SimulatedExecutionHandler::SimulatedExecutionHandler(EVENT_QUEUE_PTR e_queue) :
+            ExecutionHandler(), events(e_queue)
+        { }
+
+        /* METHODS */
+
+        /**
+         * @brief Converts Order event to Fill event 
+         *        NOTE: Does NOT take into account latency, slippage, fill ratio problems
+         * 
+         * @param event 
+         */
+        void SimulatedExecutionHandler::execute_order(Event* event)
+        {
+            FillEvent* new_order = nullptr;
+            if (event->type() == "ORDER")
+            {
+                OrderEvent* order_event = dynamic_cast<OrderEvent*>(event);
+                new_order = new FillEvent("NOW", order_event->symbol(), "EXCHANGE", order_event->direction(), ALPACA, order_event->quantity(), 0.0);
+                events->push(&(*new_order));
+            }
+        }
+
 
 #pragma endregion
 
@@ -803,12 +804,14 @@ namespace backtest
      * @return false      :
      */
     template<typename _DataModel>
-    bool FinApiHandler<_DataModel>::get_latest_symbol_data(_DataModel*& data_model, std::string symbol)
+    bool FinApiHandler<_DataModel>::get_latest_symbol_data(models::Bar& data_model, std::string symbol)
     { 
+        
         if (!in_latest_data(symbol)) return false;
         else
         {
-            data_model = latest_symbol_data[symbol];
+            data_model = latest_symbol_data[symbol]->get_bar();
+            std::cout << "Close from bar: " << data_model.close() << std::endl;
             return true;
         }   
     }

@@ -15,6 +15,7 @@
 #include "../Execution/ExSystemStructs.h"
 #include "Fields.h"
 #include "TimeStamp.h"
+#include "Bar.h"
 
 namespace finapi
 {
@@ -33,6 +34,8 @@ namespace models
         Field<float> splitCo;
 
         static DataModelType model_type();
+
+        Bar get_bar();
     };
 
     /**

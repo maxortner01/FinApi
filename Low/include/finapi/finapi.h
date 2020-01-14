@@ -81,6 +81,7 @@ namespace finapi::execution::live {}
 #include "Models/ModelComparator.h"
 #include "Models/TimeStamp.h"
 #include "Models/Fields.h"
+#include "Models/Bar.h"
 
 /*         Modelers         */
 #include "Modelers/FinDataFrame.h"
@@ -91,6 +92,7 @@ namespace finapi::execution::live {}
 #include "Execution/Strategy.h"
 #include "Execution/ExSystemStructs.h"
 #include "Execution/Portfolio.h"
+#include "Execution/Execution.h"
 
 /*        Backtest          */
 #include "Execution/Backtest/FinApiHandler.h"

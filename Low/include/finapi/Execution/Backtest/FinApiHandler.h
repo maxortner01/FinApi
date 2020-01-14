@@ -80,7 +80,7 @@ namespace backtest
 
         /* METHODS */
 
-        bool get_latest_symbol_data(_DataModel*&, std::string);
+        bool get_latest_symbol_data(models::Bar&, std::string);
 
         void update_latest_data();
 

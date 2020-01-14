@@ -48,6 +48,8 @@ namespace modeler
 
         bool get_next_model(_DataModel*&);
 
+        bool get_next_bar(models::Bar&);
+
         void sort_data(std::string, bool=true);
 
         void append(_Stream*&);
