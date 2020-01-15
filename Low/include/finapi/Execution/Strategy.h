@@ -73,15 +73,13 @@ namespace execution
      *          - bought : unordered map of symbols bought: true, false
      * 
      */
-    template<typename _DataHandler, typename _DataModel>
     class BuyAndHold : public Strategy
     {
         
         SymbolList      all_symbols;
         EVENT_QUEUE_PTR event_q;
-        //backtest::FinApiHandler<models::EodAdj>* 
-        _DataHandler*   eod_data;
-        _DataModel*     data_model;
+        DataHandler*    eod_data;
+        models::Bar     data_model;
 
         std::unordered_map<std::string, bool> bought;
 
@@ -93,7 +91,7 @@ namespace execution
 
         /* CONSTRUCTORS */
 
-        BuyAndHold(SymbolList&, EVENT_QUEUE_PTR, _DataHandler&);
+        BuyAndHold(SymbolList&, std::queue<Event*>&, DataHandler&);
 
         /* METHODS */
 

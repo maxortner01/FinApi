@@ -216,6 +216,42 @@ namespace filemethods
 
 #pragma endregion
 
+#pragma BAR_H
+
+    /**
+     * BAR IMPLEMENTATION
+     */ 
+
+    /* CONSTRUCTORS */
+
+    Bar::Bar() :
+        _open(nullptr), _high(nullptr), _low(nullptr), _close(nullptr), _volume(nullptr), _time(nullptr) { }
+
+    Bar::Bar(c_Fref o, c_Fref h, c_Fref l, c_Fref c, c_Fref v, c_TSref ts) :
+        _open(&o), _high(&h), _low(&l), _close(&c), _volume(&v), _time(&ts) { }
+
+    /* METHODS */
+
+    float Bar::open() const
+        { return _open->value; }
+
+    float Bar::high() const  
+        { return _high->value; }
+
+    float Bar::low() const
+        { return _low->value; }
+
+    float Bar::close() const
+        { return _close->value; }
+
+    float Bar::volume() const
+        { return _volume->value; }
+
+    TimeStamp Bar::time() const
+        { return _time->value; }
+
+#pragma endregion
+
 #pragma region EODADJ_H
 
     template<typename Stream>
@@ -274,6 +310,14 @@ namespace filemethods
      */
     DataModelType EodAdj::model_type()
         { return EODADJ; }
+
+    /**
+     * @brief Returns the data in Bar form to be used in execution system
+     * 
+     * @return Bar 
+     */
+    Bar EodAdj::get_bar()
+        { return Bar(openPrice, high, low, adjClose, volume, date); }
 
 #pragma endregion
 
@@ -457,6 +501,31 @@ namespace modeler
         }
 
         dat = (*it);
+        it++;
+
+        return true;
+    }
+
+    /**
+     * @brief Iterates through the data return a pointer to the current data model
+     *        until the end of the data is reached 
+     * 
+     * @tparam _DataModel 
+     * @tparam _Stream 
+     * @param bar 
+     * @return true 
+     * @return false 
+     */
+    template<typename _DataModel, typename _Stream>
+    bool FinDataFrame<_DataModel, _Stream>::get_next_bar(models::Bar& bar)
+    {
+        if (it == data.end())
+        {
+            it = data.begin();
+            return false;
+        }
+
+        bar = (*it)->get_bar();
         it++;
 
         return true;

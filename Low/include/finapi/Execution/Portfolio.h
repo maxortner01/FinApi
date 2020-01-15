@@ -77,11 +77,10 @@ namespace execution
      *        in this instance means the closing price obtained from the current market bar
      * 
      */
-    template<typename _DataHandler>
     class NaivePortfolio : public Portfolio
     {
 
-        _DataHandler*     _data;
+        DataHandler*     _data;
         EVENT_QUEUE_PTR   _events;
         SymbolList        _all_symbols;
         models::TimeStamp _start_date;
@@ -107,7 +106,7 @@ namespace execution
 
         /* CONSTRUCTOR */
 
-        NaivePortfolio(_DataHandler&, EVENT_QUEUE_PTR, SymbolList, models::TimeStamp, float);
+        NaivePortfolio(DataHandler&, EVENT_QUEUE_PTR, SymbolList, models::TimeStamp, float);
 
         /* DESTRUCTOR */
 
@@ -122,6 +121,8 @@ namespace execution
         void update_timeindex(Event*);
 
         Event* generate_naive_order(Event*);
+
+        // create_equity_curve_dataframe()
 
     };
 

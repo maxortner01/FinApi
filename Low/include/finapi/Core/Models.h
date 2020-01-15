@@ -12,6 +12,7 @@
 #pragma once
 
 /*          Models          */
+#include "../Models/Bar.h"
 #include "../Models/EodAdj.h"
 #include "../Models/DataTag.h"
 #include "../Models/Company.h"

@@ -62,17 +62,20 @@ namespace execution
     {
     public:
 
-        /* 
-         * Update the last N bars from the lastest_symbol list,
-         * or fewer if less bars are available 
+        /*
+         * Get lastest data for symbol in Bar form
          */
-        //virtual void get_latest_bars(std::string sym, int N=1) = 0;
+        virtual bool get_latest_symbol_data(models::Bar&, std::string) = 0;
 
         /* 
          * Pushes the latest bar to the latest symbol structure for all
          * symbols in the symbol list.
          */
         virtual void update_latest_data() = 0;
+
+        //virtual void display_latest_data() = 0;
+
+        virtual bool get_latest_data_timestamp(models::TimeStamp&) = 0;
 
     };
 }
