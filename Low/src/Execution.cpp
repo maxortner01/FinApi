@@ -893,7 +893,7 @@ namespace backtest
         {
             clear_queue();
             _data_handler->update_latest_data();
-            //_data_handler->display_latest_data();
+            _data_handler->display_latest_data();
             // update data until end of date range is reached
             while (true)
             {
@@ -902,7 +902,7 @@ namespace backtest
                 {
                     if (!_data_handler->update_latest_data())
                         break;
-                    //_data_handler->display_latest_data();
+                    _data_handler->display_latest_data();
                 }
                     
 
