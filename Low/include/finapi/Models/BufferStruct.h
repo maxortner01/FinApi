@@ -58,10 +58,10 @@ namespace finapi
 {
 namespace models
 {
-    template<typename _Model>
+    template<typename _Model, typename T = float>
     bool greater_than(const _Model& model1, const _Model& model2, const std::string& field);
     
-    template<typename _Model>
+    template<typename _Model, typename T = float>
     bool less_than(const _Model& model1, const _Model& model2, const std::string& field);
 
     /**
