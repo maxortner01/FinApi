@@ -364,19 +364,14 @@ namespace filemethods
         if (ascending)
         {
             if (field_to_compare == "Date")
-            {
-                std::cout << "YO WHATS UP\n";
                 return less_than<DataModel, TimeStamp>(lhs, rhs, field_to_compare);
-            }
+            
             return less_than<DataModel>(lhs, rhs, field_to_compare);
         }
         else
         {
             if (field_to_compare == "Date")
-            {
-                std::cout << "YO WHATS UP\n";
                 return greater_than<DataModel, TimeStamp>(lhs, rhs, field_to_compare);
-            }
             
             return greater_than<DataModel>(lhs, rhs, field_to_compare);
         }
@@ -395,10 +390,21 @@ namespace filemethods
     template<typename DataModel>
     bool ModelComparator<DataModel>::compare_ptr(DataModel* lhs, DataModel* rhs)
     {
+        // I hate this second if statement but oh well
         if (ascending)
+        {
+            if (field_to_compare == "Date")
+                return less_than<DataModel, TimeStamp>(*lhs, *rhs, field_to_compare);
+            
             return less_than<DataModel>(*lhs, *rhs, field_to_compare);
+        }
         else
+        {
+            if (field_to_compare == "Date")
+                return greater_than<DataModel, TimeStamp>(*lhs, *rhs, field_to_compare);
+            
             return greater_than<DataModel>(*lhs, *rhs, field_to_compare);
+        }
     } 
 
 #pragma endregion
