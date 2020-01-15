@@ -364,14 +364,19 @@ namespace filemethods
         if (ascending)
         {
             if (field_to_compare == "Date")
+            {
+                std::cout << "YO WHATS UP\n";
                 return less_than<DataModel, TimeStamp>(lhs, rhs, field_to_compare);
-            
+            }
             return less_than<DataModel>(lhs, rhs, field_to_compare);
         }
         else
         {
             if (field_to_compare == "Date")
+            {
+                std::cout << "YO WHATS UP\n";
                 return greater_than<DataModel, TimeStamp>(lhs, rhs, field_to_compare);
+            }
             
             return greater_than<DataModel>(lhs, rhs, field_to_compare);
         }
