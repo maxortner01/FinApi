@@ -85,6 +85,8 @@ namespace finapi::execution::live {}
 
 /*         Modelers         */
 #include "Modelers/FinDataFrame.h"
+#include "Modelers/EquityCurve.h"
+#include "Modelers/HoldingsDataFrame.h"
 
 /*        Execution         */
 #include "Execution/Event.h"
@@ -92,10 +94,12 @@ namespace finapi::execution::live {}
 #include "Execution/Strategy.h"
 #include "Execution/ExSystemStructs.h"
 #include "Execution/Portfolio.h"
-#include "Execution/Execution.h"
+#include "Execution/FillHandler.h"
+#include "Execution/ExecutionHandler.h"
 
 /*        Backtest          */
 #include "Execution/Backtest/FinApiHandler.h"
+#include "Execution/Backtest/BacktestExecution.h"
 
 
 #pragma endregion

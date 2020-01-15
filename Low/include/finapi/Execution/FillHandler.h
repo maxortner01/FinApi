@@ -1,5 +1,5 @@
 /**
- * @file Execution.h
+ * @file FillHandler.h
  *       Based of classes from: https://www.quantstart.com/articles/Event-Driven-Backtesting-with-Python-Part-VI/
  * 
  * @brief 
@@ -31,12 +31,24 @@ namespace execution
      *        backtested in a similar manner to live trading engine.
      * 
      */
-    class ExecutionHandler
+    class FillHandler
     {
+
+    protected:
+
+        EVENT_QUEUE_PTR _events;
 
     public:
 
-        virtual void execute_order(Event*) = 0;
+        /* CONSTRUCTOR */
+
+        FillHandler(std::queue<Event*>&);
+
+        /* METHODS */
+
+        virtual void fill_order(Event*) = 0;
+
+        void generate_fill(std::string, std::string, std::string, std::string, BrokerType, unsigned int, float);
 
     };
 
@@ -44,20 +56,18 @@ namespace execution
      * @brief 
      * 
      */
-    class SimulatedExecutionHandler : public ExecutionHandler
+    class SimulatedFillHandler : public FillHandler
     {
-
-        EVENT_QUEUE_PTR events;
 
     public:
 
         /* CONSTRUCTOR */
 
-        SimulatedExecutionHandler(EVENT_QUEUE_PTR);
+        SimulatedFillHandler(std::queue<Event*>&);
 
         /* METHODS */
 
-        void execute_order(Event*);
+        void fill_order(Event*);
 
     };
 

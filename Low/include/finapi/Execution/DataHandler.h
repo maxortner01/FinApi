@@ -46,7 +46,11 @@ namespace execution
 
         /* METHODS */
 
-        bool get_next_symbol(std::string&);        
+        bool get_next_symbol(std::string&);   
+
+        /* OPERATOR OVERLOADS */
+
+        SymbolList& operator = (const SymbolList&);     
 
     };
 
@@ -71,9 +75,9 @@ namespace execution
          * Pushes the latest bar to the latest symbol structure for all
          * symbols in the symbol list.
          */
-        virtual void update_latest_data() = 0;
+        virtual bool update_latest_data() = 0;
 
-        //virtual void display_latest_data() = 0;
+        virtual void display_latest_data() = 0;
 
         virtual bool get_latest_data_timestamp(models::TimeStamp&) = 0;
 

@@ -72,7 +72,7 @@ namespace backtest
 
         FinApiHandler() { }
 
-        FinApiHandler(std::string, EVENT_QUEUE_PTR, SymbolList, int, int);
+        FinApiHandler(std::string, std::queue<Event*>&, SymbolList, int, int);
  
         /* DESTRUCTOR */
 
@@ -82,13 +82,15 @@ namespace backtest
 
         bool get_latest_symbol_data(models::Bar&, std::string);
 
-        void update_latest_data();
+        bool update_latest_data();
 
         void display_latest_data();
 
         bool get_latest_data_timestamp(models::TimeStamp&);
 
         bool continue_backtest();
+
+        void reset_backtest();
     };   
 
 }

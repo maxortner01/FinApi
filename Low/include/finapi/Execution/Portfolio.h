@@ -25,6 +25,7 @@
 #pragma once
 
 #include "DataHandler.h"
+#include "../Core/Models.h"
 
 namespace finapi
 {
@@ -39,7 +40,31 @@ namespace execution
     class Portfolio
     {
 
+    protected:
+
+        DataHandler*      _data;
+        EVENT_QUEUE_PTR   _events;
+        SymbolList        _all_symbols;
+        models::TimeStamp _start_date;
+        float             _initial_capital;
+
+        modeler::HoldingsDataFrame<std::string, float> _asset_positions;
+        modeler::HoldingsDataFrame<std::string, float> _asset_holdings;
+
+        //std::vector<std::unordered_map<std::string, float>* > _all_positions;
+        //std::vector<std::unordered_map<std::string, float>* >::iterator _current_positions;
+        //std::vector<std::unordered_map<std::string, float>* > _all_holdings;
+        //std::vector<std::unordered_map<std::string, float>* >::iterator _current_holdings;
+
+        void initialize_all_positions();
+
+        void initialize_all_holdings();
+
     public:
+
+        /* CONSTRUCTOR */
+
+        Portfolio(DataHandler&, std::queue<Event*>&, SymbolList, models::TimeStamp, float);
 
         /**
          * @brief Acts on a SignalEvent to generate new orders
@@ -54,6 +79,16 @@ namespace execution
          * 
          */
         virtual void update_fill(Event*) = 0;
+
+        void update_timeindex(Event*);
+
+        void generate_order(std::string, std::string, std::string, unsigned int);
+
+        modeler::EquityCurve create_equity_curve_dataframe();
+
+        void display_current_positions();
+
+        void display_current_holdings();
     };
 
     /**
@@ -79,24 +114,7 @@ namespace execution
      */
     class NaivePortfolio : public Portfolio
     {
-
-        DataHandler*     _data;
-        EVENT_QUEUE_PTR   _events;
-        SymbolList        _all_symbols;
-        models::TimeStamp _start_date;
-        float             _initial_capital;
-
-        std::vector<std::unordered_map<std::string, float>* > _all_positions;
-        std::vector<std::unordered_map<std::string, float>* >::iterator _current_positions;
-
-        std::vector<std::unordered_map<std::string, float>* > _all_holdings;
-        std::vector<std::unordered_map<std::string, float>* >::iterator _current_holdings;
-
         /* PRIVATE METHODS */
-
-        void construct_all_positions();
-
-        void construct_all_holdings();
 
         void update_positions_from_fill(Event*);
 
@@ -106,11 +124,7 @@ namespace execution
 
         /* CONSTRUCTOR */
 
-        NaivePortfolio(DataHandler&, EVENT_QUEUE_PTR, SymbolList, models::TimeStamp, float);
-
-        /* DESTRUCTOR */
-
-        ~NaivePortfolio();
+        NaivePortfolio(DataHandler&, std::queue<Event*>&, SymbolList, models::TimeStamp, float);
 
         /* METHODS */
 
@@ -118,11 +132,7 @@ namespace execution
         
         void update_fill(Event*);
 
-        void update_timeindex(Event*);
-
-        Event* generate_naive_order(Event*);
-
-        // create_equity_curve_dataframe()
+        void generate_naive_order(Event*);
 
     };
 

@@ -40,17 +40,34 @@ namespace execution
     class Strategy
     {
 
+        /* PRIVATE METHODS */
+
+        void initialize_bought();
+
+    protected:
+
+        SymbolList      all_symbols;
+        EVENT_QUEUE_PTR event_q;
+        DataHandler*    eod_data;
+        models::Bar     data_model;
+
+        std::unordered_map<std::string, bool> bought;
+
     public:
 
         /* CONSTRUCTORS */
 
-        Strategy() { } 
+        Strategy(SymbolList&, std::queue<Event*>&, DataHandler&);
 
         /**
          * @brief Provides the mechanisms to calculate the list of signals
          * 
          */
         virtual void calculate_signals(Event*) = 0;
+
+        void display_holdings();
+
+        void generate_signal(std::string, models::TimeStamp, SignalType);
 
     };
 
@@ -76,16 +93,6 @@ namespace execution
     class BuyAndHold : public Strategy
     {
         
-        SymbolList      all_symbols;
-        EVENT_QUEUE_PTR event_q;
-        DataHandler*    eod_data;
-        models::Bar     data_model;
-
-        std::unordered_map<std::string, bool> bought;
-
-        /* PRIVATE METHODS */
-
-        void calculate_initial_bought();
 
     public:
 
@@ -96,8 +103,6 @@ namespace execution
         /* METHODS */
 
         void calculate_signals(Event*);
-
-        void display_holdings();
 
     };
 

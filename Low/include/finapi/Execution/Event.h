@@ -25,6 +25,12 @@ namespace execution
 
     enum EventType { MARKET, SIGNAL, ORDER, FILL };
 
+    enum SignalType { LONG, SHORT, EXIT };
+
+    enum OrderType { MKT, LMT };
+    
+    enum OrderDirection { BUY, SELL };
+
     /**
      * @brief Base class providing an interface for all inherited events
      *        that will trigger further events in the trading infrastructure.
@@ -34,17 +40,17 @@ namespace execution
     { 
         /* As of right now there will be no specific implementation or interface for base */
 
-        std::string event_type;
+        EventType event_type;
 
     public:
 
         /* CONSTRUCTORS */
         
-        Event(std::string);
+        Event(EventType);
         
         /* METHODS */
 
-        std::string type();
+        EventType type();
 
         virtual void print_event() = 0;
     };
@@ -86,7 +92,7 @@ namespace execution
     {
         std::string       _symbol;
         models::TimeStamp _date_time;
-        std::string       _signal_type;
+        SignalType        _signal_type;
         
 
     public:
@@ -94,9 +100,9 @@ namespace execution
         /* CONSTRUCTORS */
 
         SignalEvent() :
-            Event("SIGNAL") { }
+            Event(SIGNAL) { }
 
-        SignalEvent(std::string, models::TimeStamp, std::string);
+        SignalEvent(std::string, models::TimeStamp, SignalType);
 
         /* METHODS */
 
@@ -108,7 +114,7 @@ namespace execution
         models::TimeStamp date_time()
             { return _date_time; }
 
-        std::string signal_type()
+        SignalType signal_type()
             { return _signal_type; }
 
     };
@@ -137,7 +143,7 @@ namespace execution
         /* CONSTRUCTORS */
 
         OrderEvent() :
-            Event("ORDER") { }
+            Event(ORDER) { }
 
         OrderEvent(std::string, std::string, std::string, unsigned int);
 
@@ -189,7 +195,7 @@ namespace execution
         /* CONSTRUCTORS */
 
         FillEvent() :
-            Event("FILL") { }
+            Event(FILL) { }
 
         FillEvent(std::string, std::string, std::string, std::string, BrokerType, unsigned int, float);
 

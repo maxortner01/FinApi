@@ -277,7 +277,7 @@ namespace filemethods
             
             for (int j = 0; j < FIELD_COUNT; j++)
                 filemethods::read(file, (float_iter + j)->ptr());
-            assert(newEod->date().year != 0);
+            //assert(newEod->date().year != 0);
             data.push_back(newEod);
             newEod = new EodAdj;
         }
@@ -398,10 +398,21 @@ namespace filemethods
 
     /* OPERATOR OVERLOADS */
 
-    bool TimeStamp::operator == (const TimeStamp &rhs) const 
+    TimeStamp& TimeStamp::operator = (const TimeStamp& rhs)
+    {
+        if (this != &rhs)
+        {
+            year  = rhs.year;
+            month = rhs.month;
+            day   = rhs.day;
+        }
+        return (*this);
+    }
+
+    bool TimeStamp::operator == (const TimeStamp& rhs) const 
         { return (year == rhs.year) && (month == rhs.month) && (day == rhs.day); }
 
-    bool TimeStamp::operator > (const TimeStamp &rhs) const 
+    bool TimeStamp::operator > (const TimeStamp& rhs) const 
     {
         if (year > rhs.year)
             return true;
@@ -417,7 +428,7 @@ namespace filemethods
             return false;           
     }
 
-    bool TimeStamp::operator < (const TimeStamp &rhs) const
+    bool TimeStamp::operator < (const TimeStamp& rhs) const
     {
         if (year < rhs.year)
             return true;
@@ -609,5 +620,215 @@ namespace modeler
         { return data[0]->model_type(); }
 
 #pragma endregion
+
+#pragma region EQUITY_CURVE_H
+
+    /* CONSTRUCTORS */
+
+    EquityCurveNode::EquityCurveNode() { }
+
+    EquityCurveNode::EquityCurveNode(const EquityCurveNode& obj)
+    {
+        total        = obj.total;
+        returns      = obj.returns;
+        equity_curve = obj.equity_curve;
+        time         = obj.time;
+    }
+
+    /* OPERATOR OVERLOADS */
+
+    EquityCurveNode& EquityCurveNode::operator = (const EquityCurveNode& rhs)
+    {
+        if (this != &rhs)
+        {
+            total        = rhs.total;
+            returns      = rhs.returns;
+            equity_curve = rhs.equity_curve;
+            time         = rhs.time;
+        }
+        return (*this);
+    }
+
+    /* CONSTRUCTOR */
+
+    /**
+     * @brief Construct a new Equity Curve:: Equity Curve object
+     *        Uses the holdings construct used in the portfolio class
+     * 
+     * @param holdings 
+     */
+    EquityCurve::EquityCurve(const HoldingsDataFrame<std::string, float>& holdings) 
+        { construct_equity_curve(holdings); }
+
+    /**
+     * @brief Copy Constructor
+     *        Construct a new Equity Curve:: Equity Curve object
+     * 
+     * @param obj 
+     */
+    EquityCurve::EquityCurve(const EquityCurve& obj)
+    {
+        clear_data();
+        _data.reserve(obj._data.size());
+        for (int i = 0; i < _data.size(); i++)
+            _data[i] = new EquityCurveNode(*obj._data[i]);
+    }
+
+    /**
+     * @brief Move Constructor
+     *        Construct a new Equity Curve:: Equity Curve object
+     * 
+     * @param obj 
+     */
+    EquityCurve::EquityCurve(EquityCurve&& obj)
+    {
+        clear_data();
+        _data.reserve(obj._data.size());
+        // copy data pointer
+        std::copy(obj._data.begin(), obj._data.end(), _data.begin());
+        obj.clear_data();
+    }
+
+    /* DESTRUCTOR */
+
+    /**
+     * @brief Destroy the Equity Curve:: Equity Curve object
+     * 
+     */
+    EquityCurve::~EquityCurve()
+        { clear_data(); }
+
+    /* METHODS */
+
+    /**
+     * @brief Holdings must contain the following fields for each map in vector:
+     *          - total
+     *          - year
+     *          - month
+     *          - day
+     * 
+     * @param holdings 
+     */
+    void EquityCurve::construct_equity_curve(const HoldingsDataFrame<std::string, float>& holdings)
+    {
+        clear_data();
+        _data.reserve(holdings.size());
+
+        EquityCurveNode* prev_node;
+
+        // set values for first node
+        _data[0] = new EquityCurveNode;
+        _data[0]->total        = holdings[0]["total"];
+        _data[0]->returns      = 0.0;
+        _data[0]->equity_curve = 1.0;
+        _data[0]->time.year    = holdings[0]["year"]; 
+        _data[0]->time.month   = holdings[0]["month"];
+        _data[0]->time.day     = holdings[0]["day"];
+        prev_node = _data[0];
+
+        // iterate through remaining nodes
+        for (int i = 1; i < holdings.size(); i++)
+        {
+            _data[i]->total = holdings[i]["total"];
+            // percent change calc
+            _data[i]->returns = (_data[i]->total - prev_node->total) / prev_node->total;
+            _data[i]->equity_curve = (1.0 + _data[i]->returns) * prev_node->returns;
+            _data[i]->time.year    = holdings[0]["year"]; 
+            _data[i]->time.month   = holdings[0]["month"];
+            _data[i]->time.day     = holdings[0]["day"];
+
+            prev_node = _data[i];
+        }
+
+        it = _data.begin();
+    }
+
+    /**
+     * @brief Deallocate pointers in vector and clear vector
+     * 
+     */
+    void EquityCurve::clear_data()
+    {
+        for (int i = 0; i < _data.size(); i++)
+            delete _data[i];
+        _data.clear();
+    }
+
+    /**
+     * @brief Writes all data to a file in a standardized format
+     *        so it can easily be read in by Python for plotting.
+     *        FILE NAME SHOULD NOT INCLUDE EXTENSION: ".eqc" will be added.
+     * 
+     */
+    bool EquityCurve::to_file(std::string file_dir, std::string file_name)
+    {
+        std::string final_dir = file_dir + file_name + ".eqc";
+        if (_data.size())
+        {
+            std::ofstream out_file(final_dir);
+            if (out_file.is_open())
+            {
+                // write fields to file
+                out_file << "year,month,day,total,returns,equity_curve\n";
+                // iterate through each map in fields
+                for (int i = 0; i < _data.size(); i++)
+                {
+                    out_file << _data[i]->time.year    << "," 
+                             << _data[i]->time.month   << ","
+                             << _data[i]->time.day     << ","
+                             << _data[i]->total        << ","
+                             << _data[i]->returns      << ","
+                             << _data[i]->equity_curve << "\n";
+                }
+                out_file.close();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /* OVERLOADS */
+
+    /**
+     * @brief Copy assignment
+     * 
+     * @param rhs 
+     * @return EquityCurve& 
+     */
+    EquityCurve& EquityCurve::operator = (const EquityCurve& rhs)
+    {
+        if (this != &rhs)
+        {
+            clear_data();
+            _data.reserve(rhs._data.size());
+            for (int i = 0; i < _data.size(); i++)
+                _data[i] = new EquityCurveNode(*rhs._data[i]);
+        }
+        return (*this);
+    }
+
+    /**
+     * @brief Move assignment
+     *        TO DO : CAN THIS BE OPTIMIZED MORE??
+     * 
+     * @param rhs 
+     * @return EquityCurve& 
+     */
+    EquityCurve& EquityCurve::operator = (EquityCurve&& rhs)
+    {
+        if (this != &rhs)
+        {
+            clear_data();
+            _data.reserve(rhs._data.size());
+            // copy data pointer
+            std::copy(rhs._data.begin(), rhs._data.end(), _data.begin());
+            rhs.clear_data();
+        }
+        return (*this);
+    }
+
+#pragma endregion
+
+
 }
 }

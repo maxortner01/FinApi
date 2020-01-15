@@ -18,3 +18,6 @@
 #include "../Models/Company.h"
 #include "../Models/Statement.h"
 #include "../Models/ModelComparator.h"
+
+/*          Modelers          */
+#include "../Modelers/HoldingsDataFrame.h"
