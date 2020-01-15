@@ -58,24 +58,32 @@ namespace models
         "end_date", "filing_date", "fiscal_period", "id", "start_date", "statement_code", "type", "fiscal_year"
     };
 
+#define FIELD_OPERATOR_TEMP(name, type1, type2)\
+    template bool name<type1, type2> (const type1&, const type1&, const std::string&);
+
 #define FIELD_OPERATOR_FUNCTION(name, operator)\
-    template<typename _Model>\
+    template<typename _Model, typename T>\
     bool name(const _Model& model1, const _Model& model2, const std::string& field)\
     {\
         for (int i = 0; i < FinFields<_Model>::count; i++)\
             if (FinFields<_Model>::fields[i] == field)\
-                return get_field<float>(model1, field) operator get_field<float>(model2, field);\
+                return get_field<T>(model1, field) operator get_field<T>(model2, field);\
         assert(FIN_FIELD_NOT_FOUND);\
     }\
-    template bool name<EodAdj>   (const EodAdj&,    const EodAdj&,    const std::string&);\
-    template bool name<DataTag>  (const DataTag&,   const DataTag&,   const std::string&);\
-    template bool name<Company>  (const Company&,   const Company&,   const std::string&);\
-    template bool name<Statement>(const Statement&, const Statement&, const std::string&);
+    FIELD_OPERATOR_TEMP(name, EodAdj, float);\
+    FIELD_OPERATOR_TEMP(name, EodAdj, TimeStamp);\
+    FIELD_OPERATOR_TEMP(name, DataTag, float);\
+    FIELD_OPERATOR_TEMP(name, DataTag, TimeStamp);\
+    FIELD_OPERATOR_TEMP(name, Company, float);\
+    FIELD_OPERATOR_TEMP(name, Company, TimeStamp);\
+    FIELD_OPERATOR_TEMP(name, Statement, float);\
+    FIELD_OPERATOR_TEMP(name, Statement, TimeStamp);
 
     FIELD_OPERATOR_FUNCTION(greater_than, >);
     FIELD_OPERATOR_FUNCTION(less_than,    <);
 
 #undef FIELD_OPERATOR_FUNCTION
+#undef FIELD_OPERATOR_TEMP
 
 #pragma endregion
 
@@ -352,10 +360,21 @@ namespace filemethods
     template<typename DataModel>
     bool ModelComparator<DataModel>::compare(DataModel lhs, DataModel rhs)
     {
+        // I hate this second if statement but oh well
         if (ascending)
+        {
+            if (field_to_compare == "Date")
+                return less_than<DataModel, TimeStamp>(lhs, rhs, field_to_compare);
+            
             return less_than<DataModel>(lhs, rhs, field_to_compare);
+        }
         else
+        {
+            if (field_to_compare == "Date")
+                return greater_than<DataModel, TimeStamp>(lhs, rhs, field_to_compare);
+            
             return greater_than<DataModel>(lhs, rhs, field_to_compare);
+        }
     } 
 
     /**
